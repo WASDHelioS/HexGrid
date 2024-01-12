@@ -1,0 +1,37 @@
+{
+    "items": [
+        {
+            "id":1,
+            "name":"swordGuy",
+            "action": {
+                "distanceMin":4,
+                "distanceMax":6,
+                "rangeOfVision":"CONE",
+                "diagonalVision":"IN",
+                "pattern": [
+                    {
+                        "source":["SOURCE"]
+                    },
+                    {
+                        "source":["NW"]
+                    },
+                    {
+                        "source":["N"]
+                    },
+                    {
+                        "source":["NE"]
+                    },
+                    {
+                        "source":["NW","N"]
+                    },
+                    {
+                        "source":["N", "N"]
+                    },
+                    {
+                        "source":["NE","N"]
+                    }
+                ]
+            }
+        }
+    ]
+}
