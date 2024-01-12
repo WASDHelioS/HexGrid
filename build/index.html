@@ -7,6 +7,44 @@
 <body>
     <script src="framework.js"></script>
     <script src="game.js"></script>
+
+    <div style="position:absolute; left: 1000px">
+        <div>
+            <label for="summon">choose a summon</label>
+            <select name="summon" id="selectSummon"></select>
+        </div>
+        <div>
+            <button type="button" onclick="onSelectSummon()">select</button>
+            <button type="button" onclick="onCreateSummon()">create new</button>
+        </div>
+        <div id="summonDetailDiv" hidden="true">
+            <div>
+                Summon name: <input type="text" id="summonName">
+            </div>
+            <div>
+                <button type="button" onclick="onUpdateSummon()">update</button>
+                <button type="button" onclick="onDeleteSummon()">delete</button>
+            </div>
+        </div>
+        <br/>
+
+        <div id="actionSelectDiv" hidden="true">
+            <div>
+                <label for="action">choose an action</label>
+                <select name="action" id="selectAction"></select>
+            </div>
+            <div>
+                <button type="button" onclick="onSelectAction()">select</button>
+            </div>
+
+        </div>
+        <br/>
+        <div id="actionDetailDiv">
+            
+        </div>
+        
+
+    </div>
 </body>
 
 </html>

@@ -3,7 +3,9 @@
         {
             "id":1,
             "name":"swordGuy",
-            "action": {
+            "action": [{
+                "id":1,
+                "name":"AoESpell",
                 "distanceMin":4,
                 "distanceMax":6,
                 "rangeOfVision":"CONE",
@@ -31,7 +33,7 @@
                         "source":["NE","N"]
                     }
                 ]
-            }
+            }]
         }
     ]
 }

@@ -32,6 +32,7 @@ class BackgroundScene extends Scene
  */ 
 var game = new Game();
 var items;
+var currentItem;
 
 window.onload = function ()
 {
@@ -48,6 +49,7 @@ window.onload = function ()
         , function ()
         {
             this.preloadJsonThenStart("./patterns.json", function() {
+                this.prepopulateHtml();
                 this.createMainScene(game);
             })
         });
@@ -79,6 +81,75 @@ function getByKey(map, searchValue) {
     }
 }
 
+function prepopulateHtml() {
+    this.populateSummonData();
+}
+
+function populateSummonData(selectedId) {
+    let selectSummon = document.getElementById("selectSummon");
+    selectSummon.innerHTML = "";
+
+    for(let item of items.items) {
+        let option = document.createElement('option');
+        option.value = item.id;
+        option.text = item.name;
+        selectSummon.add(option);
+    }
+    if(selectedId) {
+        selectSummon.value=selectedId.toString();
+    }
+}
+
+function onSelectSummon() {
+    let id = document.getElementById("selectSummon").value;
+    currentItem = items.items.find(item => item.id == id);
+
+    document.getElementById("summonDetailDiv").hidden = false;
+
+    document.getElementById("summonName").value = currentItem.name;
+
+    document.getElementById("actionSelectDiv").hidden = false;
+    selectAction = document.getElementById("selectAction");
+    selectAction.innerHTML = "";
+
+    for(let action of currentItem.action) {
+        let option = document.createElement('option');
+        option.value = action.id;
+        option.text = action.name;
+        selectAction.add(option);
+    }
+}
+
+function onCreateSummon() {
+    let newItem = {};
+    newItem.id = nextId();
+    newItem.name = "";
+    newItem.action = [];
+
+    items.items.push(newItem);
+
+    document.getElementById("selectSummon").value = newItem.id;
+
+    currentItem = newItem;
+
+    populateSummonData(newItem.id);
+    onSelectSummon();
+}
+
+function onUpdateSummon() {
+    currentItem.name = document.getElementById("summonName").value;
+    populateSummonData(currentItem.id);
+    onSelectSummon();
+}
+
+function onDeleteSummon() {
+
+}
+
+function onSelectAction() {
+
+}
+
 async function preloadJsonThenStart (location, onComplete)
 {
     const cont = async () =>
@@ -90,6 +161,17 @@ async function preloadJsonThenStart (location, onComplete)
     };
 
     cont.apply();
+}
+
+function nextId() {
+    let highest = 0;
+    for(let item of items.items) {
+        if(item.id > highest) {
+            highest = item.id;
+        }
+    }
+
+    return highest + 1;
 }
 /*
  * End File:
@@ -177,13 +259,13 @@ class HexSceneManager {
     hexMapValidTargets = new Map();
     hexMapTargets = new Map();
 
-
     hexagonRed;
     hexagonGreen;
     hexagonYellow;
     hexagonGrey;
     hexagonWhite;
 
+    selectedAction;
 
     constructor(scene) {
         this.scene = scene;
@@ -291,8 +373,8 @@ class HexSceneManager {
 
     // Reads json and for a given rangeOfVision, marks hexes in those directions (& potentially diagonals)
     addValidHexes() {
-        let maxDistance = this.testCharacter.action.distanceMax;
-        let minDistance = this.testCharacter.action.distanceMin;
+        let maxDistance = this.testCharacter.action[0].distanceMax;
+        let minDistance = this.testCharacter.action[0].distanceMin;
         if(!minDistance) {
             minDistance = 0;
         }
@@ -300,9 +382,9 @@ class HexSceneManager {
             maxDistance = 10;
         }
 
-        let directions = range_of_vision[this.testCharacter.action.rangeOfVision];
+        let directions = range_of_vision[this.testCharacter.action[0].rangeOfVision];
 
-        let diagonal = this.testCharacter.action.diagonalVision;
+        let diagonal = this.testCharacter.action[0].diagonalVision;
 
         directions.forEach(dir => {
 
@@ -385,7 +467,6 @@ class HexSceneManager {
         }
     }
 
-    
     isWithin(testVector, centerVector, radius) {
         let distanceSq = (testVector.x - centerVector.x) * (testVector.x - centerVector.x) + 
         (testVector.y - centerVector.y) * (testVector.y - centerVector.y);
@@ -403,13 +484,14 @@ class HexSceneManager {
             this.hoveredHex.renderer.sprite = this.hexagonYellow;
         }
 
+        //if view is selected
         this.updateTargetHexes(this.hoveredHex);
 
     }
 
     //Checks the json action pattern to map out the target hexes at the current hex (hovered)
     updateTargetHexes(hexSource) {
-        let pattern = this.testCharacter.action.pattern;
+        let pattern = this.testCharacter.action[0].pattern;
         let directionFromCenterToTarget = cube_direction(hexSource.cube, this.centerHex.cube);
 
         pattern.forEach(p => {
