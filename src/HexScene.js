@@ -28,6 +28,10 @@ class HexScene extends Scene
         this.hexSceneManager.init();
     }
 
+    load() {
+        this.hexSceneManager.loadForOrientation();
+    }
+
     update (deltaTime)
     {
         super.update(deltaTime);

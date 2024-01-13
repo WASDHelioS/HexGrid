@@ -1,39 +1,45 @@
 {
-    "items": [
+    "summoners": [
         {
             "id":1,
-            "name":"swordGuy",
-            "action": [{
+            "name":"SummonerGuy",
+            "summons": [
+                {
                 "id":1,
-                "name":"AoESpell",
-                "distanceMin":4,
-                "distanceMax":6,
-                "rangeOfVision":"CONE",
-                "diagonalVision":"IN",
-                "pattern": [
-                    {
-                        "source":["SOURCE"]
-                    },
-                    {
-                        "source":["NW"]
-                    },
-                    {
-                        "source":["N"]
-                    },
-                    {
-                        "source":["NE"]
-                    },
-                    {
-                        "source":["NW","N"]
-                    },
-                    {
-                        "source":["N", "N"]
-                    },
-                    {
-                        "source":["NE","N"]
-                    }
-                ]
-            }]
+                "name":"swordGuy",
+                    "actions": [{
+                        "id":1,
+                        "name":"AoESpell",
+                        "distanceMin":4,
+                        "distanceMax":6,
+                        "rangeOfVision":"CONE",
+                        "diagonalVision":"IN",
+                        "pattern": [
+                            {
+                                "source":["SOURCE"]
+                            },
+                            {
+                                "source":["NW"]
+                            },
+                            {
+                                "source":["N"]
+                            },
+                            {
+                                "source":["NE"]
+                            },
+                            {
+                                "source":["NW","N"]
+                            },
+                            {
+                                "source":["N", "N"]
+                            },
+                            {
+                                "source":["NE","N"]
+                            }
+                        ]
+                    }]
+                }
+            ]
         }
     ]
 }

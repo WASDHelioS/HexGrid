@@ -2,8 +2,6 @@ class HexSceneManager {
 
     scene;
 
-    testCharacter;
-
     centerHex;
     hoveredHex;
 
@@ -18,11 +16,8 @@ class HexSceneManager {
     hexagonGrey;
     hexagonWhite;
 
-    selectedAction;
-
     constructor(scene) {
         this.scene = scene;
-        this.testCharacter = items.items[0];
     }
 
     /**Initialisation & image refreshing */
@@ -45,8 +40,11 @@ class HexSceneManager {
         this.hexMapValidTargets.clear();
         this.hexMapTargets.clear();
         this.greyOut();
-        this.addValidHexes();
-        this.colorValidHexes();
+
+        if(currentAction) {
+            this.addValidHexes();
+            this.colorValidHexes();
+        }
     }
 
     constructGrid(amount) {
@@ -121,13 +119,12 @@ class HexSceneManager {
         });
     }
 
-
     /** Load valid target hexes */
 
     // Reads json and for a given rangeOfVision, marks hexes in those directions (& potentially diagonals)
     addValidHexes() {
-        let maxDistance = this.testCharacter.action[0].distanceMax;
-        let minDistance = this.testCharacter.action[0].distanceMin;
+        let maxDistance = currentAction.distanceMax;
+        let minDistance = currentAction.distanceMin;
         if(!minDistance) {
             minDistance = 0;
         }
@@ -135,9 +132,9 @@ class HexSceneManager {
             maxDistance = 10;
         }
 
-        let directions = range_of_vision[this.testCharacter.action[0].rangeOfVision];
+        let directions = range_of_vision[currentAction.rangeOfVision];
 
-        let diagonal = this.testCharacter.action[0].diagonalVision;
+        let diagonal = currentAction.diagonalVision;
 
         directions.forEach(dir => {
 
@@ -244,7 +241,7 @@ class HexSceneManager {
 
     //Checks the json action pattern to map out the target hexes at the current hex (hovered)
     updateTargetHexes(hexSource) {
-        let pattern = this.testCharacter.action[0].pattern;
+        let pattern = currentAction.pattern;
         let directionFromCenterToTarget = cube_direction(hexSource.cube, this.centerHex.cube);
 
         pattern.forEach(p => {
