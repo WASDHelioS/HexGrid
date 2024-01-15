@@ -17,6 +17,12 @@ window.onload = function ()
             { name: "hexagonRed", url: "images/hexagonRed.png" },
             { name: "hexagonOrange", url: "images/hexagonOrange.png" },
             { name: "hexagonYellow", url: "images/hexagonYellow.png" },
+
+            { name: "button", url: "images/buttons.png", subImgTotal: 5, perRow: 1},
+            { name: "buttonX", url: "images/buttonsX.png", subImgTotal: 3, perRow: 1},
+            { name: "buttonLeft", url: "images/buttonsLeft.png", subImgTotal: 3, perRow: 1},
+            { name: "buttonRight", url: "images/buttonsRight.png", subImgTotal: 3, perRow: 1},
+
         ]
         , function ()
         {
@@ -34,6 +40,14 @@ createMainScene = function (game)
     this.game.loadScene(scene);
 
     scene.init();
+
+    selectedScene = new SelectedScene(10,10, 900, 50);
+
+    menuScene = new SelectMenuMainScene(0, 100, 200, 600);
+
+    scene.loadChildScene(selectedScene);
+    scene.loadChildScene(menuScene);
+    menuScene.init();
 
     console.log("Game started!");
 };
@@ -214,12 +228,9 @@ function onDeleteAction() {
 
 
 function toJson() {
-    console.log(JSON.stringify(summoners));
-
     let newTab = window.open();
     newTab.document.write("<html><body><pre>" +  JSON.stringify(summoners, null, 4) + "</pre></body></html>");
     newTab.document.close();
-    tab.focus();
 }
 
 async function preloadJsonThenStart (location, onComplete)
@@ -244,4 +255,12 @@ function nextId(obj) {
     }
 
     return highest + 1;
+}
+
+function clearChildScenes(parentScene) {
+    game.activeScenes.forEach(scene => {
+        if(scene.parentScene === parentScene) {
+            scene.destroy();
+        }
+    })
 }

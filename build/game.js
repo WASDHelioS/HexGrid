@@ -49,6 +49,12 @@ window.onload = function ()
             { name: "hexagonRed", url: "images/hexagonRed.png" },
             { name: "hexagonOrange", url: "images/hexagonOrange.png" },
             { name: "hexagonYellow", url: "images/hexagonYellow.png" },
+
+            { name: "button", url: "images/buttons.png", subImgTotal: 5, perRow: 1},
+            { name: "buttonX", url: "images/buttonsX.png", subImgTotal: 3, perRow: 1},
+            { name: "buttonLeft", url: "images/buttonsLeft.png", subImgTotal: 3, perRow: 1},
+            { name: "buttonRight", url: "images/buttonsRight.png", subImgTotal: 3, perRow: 1},
+
         ]
         , function ()
         {
@@ -66,6 +72,14 @@ createMainScene = function (game)
     this.game.loadScene(scene);
 
     scene.init();
+
+    selectedScene = new SelectedScene(10,10, 900, 50);
+
+    menuScene = new SelectMenuMainScene(0, 100, 200, 600);
+
+    scene.loadChildScene(selectedScene);
+    scene.loadChildScene(menuScene);
+    menuScene.init();
 
     console.log("Game started!");
 };
@@ -246,12 +260,9 @@ function onDeleteAction() {
 
 
 function toJson() {
-    console.log(JSON.stringify(summoners));
-
     let newTab = window.open();
     newTab.document.write("<html><body><pre>" +  JSON.stringify(summoners, null, 4) + "</pre></body></html>");
     newTab.document.close();
-    tab.focus();
 }
 
 async function preloadJsonThenStart (location, onComplete)
@@ -276,6 +287,14 @@ function nextId(obj) {
     }
 
     return highest + 1;
+}
+
+function clearChildScenes(parentScene) {
+    game.activeScenes.forEach(scene => {
+        if(scene.parentScene === parentScene) {
+            scene.destroy();
+        }
+    })
 }
 /*
  * End File:
@@ -640,6 +659,141 @@ class HexSceneManager {
 
 /*
  * Start File:
+ * ./src/objects/button.js
+ */ 
+class Button extends GameObject {
+
+    hovered; // bool
+    selected; //bool
+    clicked; //func
+    held; //func
+    selectable = true; //bool
+    obj;
+    name;
+    textSize = 10;
+
+    constructor(x,y, image) {
+        super(x,y,image,1)
+    }
+
+    setObj(obj) {
+        this.obj = obj;
+        this.name = obj.name;
+    }
+
+    setName(name) {
+        this.name = name;
+    }
+
+    update (deltaTime) {
+        super.update(deltaTime);
+
+    }
+
+    draw() {
+        super.draw();
+
+        if(this.name) {
+            let ctx = this.scene.cv_context;
+            ctx.font = this.textSize + "px Verdana";
+            ctx.fillStyle = "black";
+            ctx.textAlign = "center";
+            ctx.fillText(this.name,this.transform.position.x, this.transform.position.y);
+        }
+    }
+
+    onClick(btns) {
+        if(this.selected || !this.selectable) {
+            return;
+        }
+        if(btns.left) {
+            this.clicked && this.clicked(this);
+        }
+    }
+
+    onMouseHeld(btns) {
+        if(this.selected || !this.selectable) {
+            return;
+        }
+        if(btns.left) {
+            this.held && this.held(this);
+        }
+    }
+}
+/*
+ * End File:
+ * ./src/objects/button.js
+ */ 
+
+/*
+ * Start File:
+ * ./src/objects/buttonGroup.js
+ */ 
+class ButtonGroup {
+
+    buttons = [];
+    selectedInGroup;
+
+    addButton(button) {
+        this.buttons.push(button);
+        if(!button.selectable) {
+            button.renderer.subImage = 4;
+        }
+    }
+
+    hover(mousePos) {
+        this.buttons.forEach(button => {
+            if(button.selected) {
+                return;
+            }
+
+            if(!button.selectable) {
+                button.renderer.subImage = 4;
+                return;
+            }
+
+            if(this.isWithin(mousePos, button)) {
+                button.renderer.subImage = 1;
+            } else {
+                button.renderer.subImage = 0;
+                
+            }
+        });
+    }
+
+    held(btn) {
+        btn.renderer.subImage = 2;
+    }
+
+    isWithin(mousePos, button) {
+        return mousePos.x > button.transform.position.x - button.transform.size.x / 2 && 
+            mousePos.x < button.transform.position.x + button.transform.size.x / 2 &&
+            mousePos.y > button.transform.position.y - button.transform.size.y / 2&&
+            mousePos.y < button.transform.position.y + button.transform.size.y / 2;
+    }
+
+    manageSelect(btn) {
+        this.buttons.forEach(button => {
+            if(button === btn && button.selectable) {
+                button.renderer.subImage = 3;
+                button.selected = true;
+                this.selectedInGroup = button;
+            } else {
+                if(button.selectable) {
+                    button.renderer.subImage = 0;
+                    button.selected = false;
+                }
+            }
+        });
+    }
+}
+/*
+ * End File:
+ * ./src/objects/buttonGroup.js
+ */ 
+
+/*
+ * Start File:
  * ./src/objects/cube.js
  */ 
 class Cube {
@@ -860,4 +1014,383 @@ const range_of_vision = {
 /*
  * End File:
  * ./src/objects/hexChar.js
+ */ 
+
+/*
+ * Start File:
+ * ./src/SelectedScene.js
+ */ 
+class SelectedScene extends Scene {
+
+    constructor(x,y,width,height) {
+        super(x,y,width,height,Scene.DisplayModes.absolute);
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+    }
+
+    draw() {
+        super.draw();
+
+        if(currentSummoner) {
+            let ctx = this.cv_context;
+            ctx.font = "15px Verdana";
+            ctx.fillStyle = "black";
+            ctx.textAlign = "left";
+            ctx.fillText("Summoner : " + currentSummoner.name, 0, this.height / 2);
+        }
+
+        if(currentSummon) {
+            let ctx = this.cv_context;
+            ctx.font = "15px Verdana";
+            ctx.fillStyle = "black";
+            ctx.textAlign = "center";
+            ctx.fillText("Summon : " + currentSummon.name, this.width / 2, this.height / 2);
+        }
+
+        if(currentAction) {
+            let ctx = this.cv_context;
+            ctx.font = "15px Verdana";
+            ctx.fillStyle = "black";
+            ctx.textAlign = "right";
+            ctx.fillText("Action : " + currentAction.name, this.width, this.height / 2);
+        }
+    }
+}
+/*
+ * End File:
+ * ./src/SelectedScene.js
+ */ 
+
+/*
+ * Start File:
+ * ./src/SelectMenuMainScene.js
+ */ 
+class SelectMenuMainScene extends Scene {
+
+    x;
+    y;
+    width;
+    height;
+
+    buttonGroups = [];
+
+    constructor(x,y,width,height) {
+        super(x,y,width,height,Scene.DisplayModes.absolute);
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+    }
+
+    init() {
+
+        this.addHierarchyButtons();
+        this.addImportButton();
+        this.addExportButton();
+        this.addResetButton();
+    }
+
+    addHierarchyButtons() {
+        let summonerButton = new Button(80,100, this.game.images.button);
+        let summonButton = new Button(80, 150, this.game.images.button);
+        let actionButton = new Button(80, 200, this.game.images.button);
+
+        summonerButton.transform.scale = new vector(0.8,1);
+        summonerButton.setName("Summoners");
+        summonerButton.textSize = 14;
+        
+        summonButton.transform.scale = new vector(0.8, 1);
+        summonButton.selectable = false;
+        summonButton.setName("Summons");
+        summonButton.textSize = 14;
+
+        actionButton.transform.scale = new vector(0.8, 1);
+        actionButton.selectable = false;
+        actionButton.setName("Actions");
+        actionButton.textSize = 14;
+
+        this.addObject(summonerButton);
+        this.addObject(summonButton);
+        this.addObject(actionButton);
+
+        let buttonGroup = new ButtonGroup();
+
+        buttonGroup.addButton(summonerButton);
+        buttonGroup.addButton(summonButton);
+        buttonGroup.addButton(actionButton);
+
+        summonerButton.clicked = (btn) => { 
+            clearChildScenes(this);
+            let scene = new SelectMenuSubScene(225, 100, 450 ,250, btn);
+
+            scene.callBack = (scene) => {
+
+            currentSummoner = scene.selected;
+            currentSummon = null;
+            currentAction = null;
+
+            scene.originBtn.selected = false;
+            scene.originBtn.renderer.subImage = 0;
+            scene.destroy();
+
+            summonButton.selectable = true;
+            summonButton.renderer.subImage = 0;
+
+            };
+
+            this.loadChildScene(scene);
+            scene.init(summoners);
+            buttonGroup.manageSelect(btn);
+        };
+
+        summonerButton.held = (btn) => {
+            buttonGroup.held(btn);
+        }
+
+        summonButton.clicked = (btn) => { 
+            clearChildScenes(this); 
+            let scene = new SelectMenuSubScene(225, 100, 450 ,250, btn);
+
+            scene.callBack = (scene) => {
+
+                currentSummon = scene.selected;
+                currentAction = null;
+
+                scene.originBtn.selected = false;
+                scene.originBtn.renderer.subImage = 0;
+                scene.destroy();
+
+                actionButton.selectable = true;
+                actionButton.renderer.subImage = 0;
+
+            };
+
+            this.loadChildScene(scene);
+            scene.init(currentSummoner.summons);
+            buttonGroup.manageSelect(btn);
+        };
+
+        summonButton.held = (btn) => {
+            buttonGroup.held(btn);
+        }
+
+        actionButton.clicked = (btn) => { 
+            clearChildScenes(this); 
+            let scene = new SelectMenuSubScene(225, 100, 450 ,250, btn);
+
+            scene.callBack = (scene) => {
+
+                currentAction = scene.selected;
+
+                scene.originBtn.selected = false;
+                scene.originBtn.renderer.subImage = 0;
+                this.parentScene.load();
+                scene.destroy();
+            };
+
+            this.loadChildScene(scene);
+            scene.init(currentSummon.actions);
+            buttonGroup.manageSelect(btn); 
+        };
+
+        actionButton.held = (btn) => {
+            buttonGroup.held(btn);
+        }
+
+        this.buttonGroups.push(buttonGroup);
+    }
+
+    addImportButton() {
+        let importButton = new Button(80, this.height - 80, this.game.images.button);
+
+        importButton.transform.scale = new vector(0.4, 0.4);
+        importButton.setName("Import");
+
+        this.addObject(importButton);
+
+        let importButtonGroup = new ButtonGroup();
+        importButton.clicked = (btn) => {
+            // import
+        }
+        importButton.held = (btn) => {
+            importButtonGroup.held(btn);
+        }
+        importButtonGroup.addButton(importButton);
+
+        this.buttonGroups.push(importButtonGroup);
+    }
+
+    addExportButton() {
+        let exportButton = new Button(80, this.height - 60, this.game.images.button);
+
+        exportButton.transform.scale = new vector(0.4, 0.4);
+        exportButton.setName("Export");
+
+        this.addObject(exportButton);
+
+        let exportButtonGroup = new ButtonGroup();
+        exportButton.clicked = (btn) => {
+            toJson();
+        }
+        exportButton.held = (btn) => {
+            exportButtonGroup.held(btn);
+        }
+        exportButtonGroup.addButton(exportButton);
+
+        this.buttonGroups.push(exportButtonGroup);
+    }
+
+    addResetButton() {
+        let resetButton = new Button(80, this.height - 40, this.game.images.button);
+
+        resetButton.transform.scale = new vector(0.4, 0.4);
+        resetButton.setName("Reset");
+
+        this.addObject(resetButton);
+
+        let resetButtonGroup = new ButtonGroup();
+        resetButton.clicked = (btn) => {
+            // import
+        }
+        resetButton.held = (btn) => {
+            resetButtonGroup.held(btn);
+        }
+        resetButtonGroup.addButton(resetButton);
+
+        this.buttonGroups.push(resetButtonGroup);
+    }
+
+    update(deltaTime) {
+        super.update(deltaTime);
+
+        this.handleMouse();        
+    }
+
+    handleMouse() {
+        if(!GameInput.mousePosition) {
+            return;
+        }
+
+        let translatedMousePos = new vector(GameInput.mousePosition.x - this.x, GameInput.mousePosition.y-this.y);
+
+        if(translatedMousePos.x < 0 || translatedMousePos.y < 0 || translatedMousePos.x > this.width || translatedMousePos.y > this.height) {
+            return;
+        }
+
+        if(GameInput.mouseHeld().left) {
+            return;
+        }
+
+        this.buttonGroups.forEach(bg => bg.hover(translatedMousePos));
+    }
+}
+/*
+ * End File:
+ * ./src/SelectMenuMainScene.js
+ */ 
+
+/*
+ * Start File:
+ * ./src/SelectMenuSubScene.js
+ */ 
+class SelectMenuSubScene extends SelectMenuMainScene {
+
+    originBtn;
+    selected;
+    callBack;
+
+    constructor(x,y,width,height, originBtn) {
+        super(x,y,width,height,Scene.DisplayModes.absolute);
+        this.originBtn = originBtn;
+    }
+
+    init(src) {
+        this.addOptionButtons(src);
+        this.addSelectButton();
+        this.addUpdateButton();
+        this.addDeleteButton();
+        this.addCloseButton();
+    }
+
+    addOptionButtons(src) {
+        let btnGroup = new ButtonGroup();
+        for(let i = 0; i < src.length; i++) {
+            let obj = src[i];
+
+            let btn = new Button(0,0,this.game.images.button);
+            btn.setObj(obj);
+            btn.transform.scale = new vector(.6,.6);
+            btn.transform.position = new vector(btn.transform.size.x / 2 + (btn.transform.size.x * Math.floor(i / 5) + 1), 
+                                                (btn.transform.size.y * 1.7) + (btn.transform.size.y * (i % 5)));
+
+            btn.clicked = (btn) => {
+                this.selected = btn.obj;
+                btnGroup.manageSelect(btn);
+            }
+
+            btnGroup.addButton(btn);
+            this.addObject(btn);
+        }
+        this.buttonGroups.push(btnGroup);
+    }
+
+    addSelectButton() {
+        let btnGroup = new ButtonGroup();
+        let btn = new Button(0,0, this.game.images.button);
+        btn.setName("Select");
+
+        btn.transform.scale = new vector(.6,.6);
+        btn.transform.position = new vector(btn.transform.size.x / 2, this.height - btn.transform.size.y );
+
+        btn.held = (btn) => {
+            btnGroup.held(btn);
+
+            if(!this.selected) {
+                return;
+            }
+
+            this.callBack && this.callBack(this);
+        };
+
+        btnGroup.addButton(btn);
+        this.addObject(btn);
+        this.buttonGroups.push(btnGroup);
+
+    }
+
+    addUpdateButton() {
+
+    }
+
+    addDeleteButton() {
+
+    }
+
+    addCloseButton() {
+        let buttonGroup = new ButtonGroup();
+
+        let xButton = new Button(0,0, this.game.images.buttonX);
+        xButton.transform.scale = new vector(.6,.6);
+        xButton.transform.position = new vector(this.width - xButton.transform.size.x/2, xButton.transform.size.y/2);
+        xButton.held = (btn) => {
+            buttonGroup.held(btn);
+
+            this.originBtn.selected = false;
+            this.originBtn.renderer.subImage = 0;
+            this.destroy();
+        };
+
+        this.addObject(xButton);
+
+        buttonGroup.addButton(xButton);
+
+        this.buttonGroups.push(buttonGroup);
+    }
+
+}
+/*
+ * End File:
+ * ./src/SelectMenuSubScene.js
  */ 

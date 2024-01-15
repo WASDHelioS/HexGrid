@@ -853,6 +853,8 @@ class Scene
             this.context.clearRect(0, 0, this.real_size.x, this.real_size.y);
 
             this.destroyed = true;
+
+            document.getElementById(this.id).remove();
         }
     }
 
