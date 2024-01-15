@@ -64,10 +64,14 @@ class SelectMenuMainScene extends Scene {
 
             scene.originBtn.selected = false;
             scene.originBtn.renderer.subImage = 0;
+            this.parentScene.load();
             scene.destroy();
 
             summonButton.selectable = true;
             summonButton.renderer.subImage = 0;
+
+            actionButton.selectable = false;
+            actionButton.renderer.subImage = 4;
 
             };
 
@@ -91,6 +95,7 @@ class SelectMenuMainScene extends Scene {
 
                 scene.originBtn.selected = false;
                 scene.originBtn.renderer.subImage = 0;
+                this.parentScene.load();
                 scene.destroy();
 
                 actionButton.selectable = true;

@@ -59,7 +59,6 @@ window.onload = function ()
         , function ()
         {
             this.preloadJsonThenStart("./patterns.json", function() {
-                this.prepopulateHtml();
                 this.createMainScene(game);
             })
         });
@@ -99,44 +98,6 @@ function getByKey(map, searchValue) {
     }
 }
 
-function prepopulateHtml() {
-    this.populateSummonerData();
-}
-
-function populateSummonerData(selectedId) {
-    let selectSummoner = document.getElementById("selectSummoner");
-    selectSummoner.innerHTML = "";
-
-    for(let summoner of summoners) {
-        let option = document.createElement('option');
-        option.value = summoner.id;
-        option.text = summoner.name;
-        selectSummoner.add(option);
-    }
-    if(selectedId) {
-        selectSummoner.value=selectedId.toString();
-    }
-}
-
-function onSelectSummoner() {
-    currentSummon = null;
-    currentAction = null;
-    document.getElementById("summonDetailDiv").hidden = true;
-    document.getElementById("actionSelectDiv").hidden = true;
-    document.getElementById("actionDetailDiv").hidden = true;
-    scene.load();
-
-    let id = document.getElementById("selectSummoner").value;
-    currentSummoner = summoners.find(summoner => summoner.id == id);
-
-    document.getElementById("summonerDetailDiv").hidden = false;
-
-    document.getElementById("summonerName").value = currentSummoner.name;
-
-    document.getElementById("summonSelectDiv").hidden = false;
-    
-    populateSummonData();
-}
 
 function onCreateSummoner() {
     let newSummoner = {};
@@ -162,21 +123,6 @@ function onUpdateSummoner() {
 
 function onDeleteSummoner() {
 
-}
-
-function populateSummonData(selectedId) {
-    let selectSummon = document.getElementById("selectSummon");
-    selectSummon.innerHTML = "";
-
-    for(let summon of currentSummoner.summons) {
-        let option = document.createElement('option');
-        option.value = summon.id;
-        option.text = summon.name;
-        selectSummon.add(option);
-    }
-    if(selectedId) {
-        selectSummon.value=selectedId.toString();
-    }
 }
 
 function onSelectSummon() {    
@@ -229,21 +175,6 @@ function onUpdateSummon() {
 
 function onDeleteSummon() {
 
-}
-
-function onSelectAction() {
-    let id = document.getElementById("selectAction").value;
-    currentAction = currentSummon.actions.find(action => action.id == id);
-
-    document.getElementById("actionDetailDiv").hidden = false;
-
-    document.getElementById("actionName").value = currentAction.name;
-    document.getElementById("distanceMin").value = currentAction.distanceMin ? currentAction.distanceMin : null;
-    document.getElementById("distanceMax").value = currentAction.distanceMax ? currentAction.distanceMax : null;
-    document.getElementById("rangeOfVision").value = currentAction.rangeOfVision;
-    document.getElementById("diagonalVision").value = currentAction.diagonalVision;
-
-    scene.load();
 }
 
 function onCreateAction() {
@@ -1133,10 +1064,14 @@ class SelectMenuMainScene extends Scene {
 
             scene.originBtn.selected = false;
             scene.originBtn.renderer.subImage = 0;
+            this.parentScene.load();
             scene.destroy();
 
             summonButton.selectable = true;
             summonButton.renderer.subImage = 0;
+
+            actionButton.selectable = false;
+            actionButton.renderer.subImage = 4;
 
             };
 
@@ -1160,6 +1095,7 @@ class SelectMenuMainScene extends Scene {
 
                 scene.originBtn.selected = false;
                 scene.originBtn.renderer.subImage = 0;
+                this.parentScene.load();
                 scene.destroy();
 
                 actionButton.selectable = true;
