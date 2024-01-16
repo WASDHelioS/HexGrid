@@ -101,7 +101,7 @@ class SelectMenuSubScene extends SelectMenuMainScene {
                 scene.destroy();
 
             };
-            
+
             this.loadChildScene(scene);
             scene.init(this.src, this.level);
             btnGroup.manageSelect(btn);

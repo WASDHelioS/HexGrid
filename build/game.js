@@ -1395,7 +1395,7 @@ class SelectMenuSubScene extends SelectMenuMainScene {
                 scene.destroy();
 
             };
-            
+
             this.loadChildScene(scene);
             scene.init(this.src, this.level);
             btnGroup.manageSelect(btn);
@@ -1472,7 +1472,7 @@ class CreateScene extends SelectMenuMainScene {
     newObj;
     level;
 
-    inputFields = []; // contains {input, objectField}
+    inputFields = []; // contains {property, input}
 
     constructor(x,y,width,height, button) {
         super(x,y,width,height,Scene.DisplayModes.absolute);
@@ -1487,17 +1487,19 @@ class CreateScene extends SelectMenuMainScene {
         if(level == "summoner") {
             this.newObj.summons = [];
             this.createButton();
-            this.createInputField(80,80,80,80,this.newObj.name);
+            this.createInputField(120,80,'name');
         } else if(level == "summon") {
             this.newObj.actions = [];
-
+            this.newObj.actions = [];
+            this.createButton();
+            this.createInputField(120, 80, 'name');
             // create base summon + construct input fields for summon
         } else {
             //create base action. immediately select + right side window
         }
     }
 
-    createInputField(x,y, objectFieldReference) {
+    createInputField(x,y, property) {
         let inputFieldObjectFieldMap = {};
         let clickableField = new GameObject(x,y, this.game.images.input);
         clickableField.transform.scale = new vector(.1,.1);
@@ -1513,8 +1515,11 @@ class CreateScene extends SelectMenuMainScene {
             let ctx = this.cv_context;
             ctx.font = "10px Verdana";
             ctx.fillStyle = "black";
+            ctx.textAlign = "right";
+            ctx.fillText(property + " : ", x-clickableField.transform.size.x /2, y + 5);
+
             ctx.textAlign = "left";
-            ctx.fillText("test : " + inputField.value ,x-clickableField.transform.size.x/2, y - clickableField.transform.size.y/2);
+            ctx.fillText(inputField.value, x-clickableField.transform.size.x /2 + 5, y + 5);
         }
 
         clickableField.onClick = () => {
@@ -1523,7 +1528,7 @@ class CreateScene extends SelectMenuMainScene {
         }
 
         inputFieldObjectFieldMap.input = inputField;
-        inputFieldObjectFieldMap.objectField = objectFieldReference;
+        inputFieldObjectFieldMap.prop = property;
         this.inputFields.push(inputFieldObjectFieldMap);
     }
 
@@ -1540,6 +1545,11 @@ class CreateScene extends SelectMenuMainScene {
             this.originBtn.selected = false;
             this.originBtn.renderer.subImage = 0;
             
+            this.inputFields.forEach(map => {
+                this.newObj[map.prop] = map.input.value;
+                map.input.remove();
+            })
+
             this.callBack && this.callBack(this, this.newObj);
         };
 
@@ -1562,17 +1572,6 @@ class CreateScene extends SelectMenuMainScene {
         ctx.fillText("ID: " + this.newObj.id ,40, 40);
 
         ctx.fillText("Create a " + this.level, 20,20);
-    }
-
-    destroy() {
-        super.destroy();
-
-        console.log(this.inputFields);
-        this.inputFields.forEach(map => {
-            console.log(map);
-            map.objectField = map.input;
-            map.input.remove();
-        });
     }
 }
 /*
