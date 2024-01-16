@@ -55,6 +55,7 @@ window.onload = function ()
             { name: "buttonLeft", url: "images/buttonsLeft.png", subImgTotal: 3, perRow: 1},
             { name: "buttonRight", url: "images/buttonsRight.png", subImgTotal: 3, perRow: 1},
 
+            { name: "input", url: "images/input.png"},
         ]
         , function ()
         {
@@ -211,7 +212,10 @@ async function preloadJsonThenStart (location, onComplete)
 
 function nextId(obj) {
     let highest = 0;
+    console.log(obj);
     for(let item of obj) {
+        console.log(item.id);
+
         if(item.id > highest) {
             highest = item.id;
         }
@@ -341,22 +345,41 @@ class HexSceneManager {
     }
 
     loadForOrientation() {
+        if(!currentAction) {
+            this.replaceCenterHexBy(new Hex(this.scene.width/2,this.scene.height/2,this.hexagonWhite));
+        }
+
         this.hoveredHex = null;
         this.hexMapValidTargets.clear();
         this.hexMapTargets.clear();
         this.greyOut();
 
         if(currentAction) {
+            if(!(this.centerHex instanceof HexChar)) {
+                this.replaceCenterHexBy(new HexChar(this.scene.width/2,this.scene.height/2,this.hexagonGreen, ()=> this.loadForOrientation()));
+            }
             this.addValidHexes();
             this.colorValidHexes();
         }
+    }
+
+    replaceCenterHexBy(hex) {
+        let cubeZero = getByValue(this.hexMap, this.centerHex);
+        this.centerHex.cube = cubeZero;
+        this.centerHex.destroy();
+
+        this.centerHex = hex;
+        this.centerHex.cube = cubeZero;
+        this.setHexPositionData(this.centerHex, cubeZero);
+        this.hexMap.set(cubeZero, this.centerHex);
+        this.scene.addObject(this.centerHex);
     }
 
     constructGrid(amount) {
 
         let cubeZero = new Cube(0,0,0);
 
-        this.centerHex =  new HexChar(this.scene.width/2,this.scene.height/2,this.hexagonGreen, ()=> this.loadForOrientation());
+        this.centerHex =  new Hex(this.scene.width/2,this.scene.height/2,this.hexagonWhite);
         this.centerHex.cube = cubeZero;
 
         this.hexMap.set(cubeZero, this.centerHex);
@@ -397,14 +420,15 @@ class HexSceneManager {
     //transforms cube positions to x-y coordinates and sets
     placeGrid() {
         this.hexMap.forEach((hex,cube) => {
-            let size = hex.transform.size;
+            this.setHexPositionData(hex, cube);
+        });
+    }
 
-            let v = mapCubeToPositionVector(hex,cube);
-
-            hex.transform.position = v;
-
-            hex.radius = Math.sqrt(3)/2 * ((hex.transform.position.x + size.x / 4) - (hex.transform.position.x - size.x / 4));
-        })
+    setHexPositionData(hex, cube) {
+        let size = hex.transform.size;
+        let v = mapCubeToPositionVector(hex,cube);
+        hex.transform.position = v;
+        hex.radius = Math.sqrt(3)/2 * ((hex.transform.position.x + size.x / 4) - (hex.transform.position.x - size.x / 4));
     }
 
     addGrid() {
@@ -415,11 +439,14 @@ class HexSceneManager {
 
     greyOut() {
         this.hexMap.forEach((hex, cube) => {
-
-            if(!cube_matches(cube, new Cube(0,0,0))) {
-                hex.renderer.sprite = this.hexagonGrey;
+            if(currentAction) {
+                if(!cube_matches(cube, new Cube(0,0,0))) {
+                    hex.renderer.sprite = this.hexagonGrey;
+                } else {
+                    hex.renderer.sprite = this.hexagonGreen;
+                }
             } else {
-                hex.renderer.sprite = this.hexagonGreen;
+                hex.renderer.sprite = this.hexagonGrey;
             }
         });
     }
@@ -551,9 +578,10 @@ class HexSceneManager {
 
         pattern.forEach(p => {
             if(p.source.includes("SOURCE")) {
-
+                this.hexMapTargets.set(hexSource.cube, hexSource);
                 return;
             }
+
             let translatedSource = p.source.map(d=> {
                 
                 let direction = CubeDirection[d];
@@ -596,6 +624,7 @@ class Button extends GameObject {
 
     hovered; // bool
     selected; //bool
+    isClicked; // bool
     clicked; //func
     held; //func
     selectable = true; //bool
@@ -604,7 +633,7 @@ class Button extends GameObject {
     textSize = 10;
 
     constructor(x,y, image) {
-        super(x,y,image,1)
+        super(x,y,image,1);
     }
 
     setObj(obj) {
@@ -619,6 +648,9 @@ class Button extends GameObject {
     update (deltaTime) {
         super.update(deltaTime);
 
+        if(!GameInput.g_mouseDown) {
+            this.isClicked = false;
+        }
     }
 
     draw() {
@@ -634,6 +666,7 @@ class Button extends GameObject {
     }
 
     onClick(btns) {
+        this.isClicked = true;
         if(this.selected || !this.selectable) {
             return;
         }
@@ -643,11 +676,13 @@ class Button extends GameObject {
     }
 
     onMouseHeld(btns) {
-        if(this.selected || !this.selectable) {
-            return;
-        }
-        if(btns.left) {
-            this.held && this.held(this);
+        if(this.isClicked) {
+            if(this.selected || !this.selectable) {
+                return;
+            }
+            if(btns.left) {
+                this.held && this.held(this);
+            }
         }
     }
 }
@@ -693,7 +728,9 @@ class ButtonGroup {
     }
 
     held(btn) {
-        btn.renderer.subImage = 2;
+        if(btn.isClicked) {
+            btn.renderer.subImage = 2;
+        }
     }
 
     isWithin(mousePos, button) {
@@ -1058,25 +1095,25 @@ class SelectMenuMainScene extends Scene {
 
             scene.callBack = (scene) => {
 
-            currentSummoner = scene.selected;
-            currentSummon = null;
-            currentAction = null;
+                currentSummoner = scene.selected;
+                currentSummon = null;
+                currentAction = null;
 
-            scene.originBtn.selected = false;
-            scene.originBtn.renderer.subImage = 0;
-            this.parentScene.load();
-            scene.destroy();
+                scene.originBtn.selected = false;
+                scene.originBtn.renderer.subImage = 0;
+                this.parentScene.load();
+                scene.destroy();
 
-            summonButton.selectable = true;
-            summonButton.renderer.subImage = 0;
+                summonButton.selectable = true;
+                summonButton.renderer.subImage = 0;
 
-            actionButton.selectable = false;
-            actionButton.renderer.subImage = 4;
+                actionButton.selectable = false;
+                actionButton.renderer.subImage = 4;
 
             };
 
             this.loadChildScene(scene);
-            scene.init(summoners);
+            scene.init(summoners, "summoner");
             buttonGroup.manageSelect(btn);
         };
 
@@ -1104,7 +1141,7 @@ class SelectMenuMainScene extends Scene {
             };
 
             this.loadChildScene(scene);
-            scene.init(currentSummoner.summons);
+            scene.init(currentSummoner.summons, "summon");
             buttonGroup.manageSelect(btn);
         };
 
@@ -1127,7 +1164,7 @@ class SelectMenuMainScene extends Scene {
             };
 
             this.loadChildScene(scene);
-            scene.init(currentSummon.actions);
+            scene.init(currentSummon.actions, "action");
             buttonGroup.manageSelect(btn); 
         };
 
@@ -1234,20 +1271,38 @@ class SelectMenuMainScene extends Scene {
 class SelectMenuSubScene extends SelectMenuMainScene {
 
     originBtn;
+    src;
     selected;
     callBack;
+    level;
 
     constructor(x,y,width,height, originBtn) {
         super(x,y,width,height,Scene.DisplayModes.absolute);
         this.originBtn = originBtn;
     }
 
-    init(src) {
+    init(src, level) {
+        this.src = src;
+        console.log(src);
+        this.level = level;
         this.addOptionButtons(src);
         this.addSelectButton();
+        this.addCreateButton();
         this.addUpdateButton();
         this.addDeleteButton();
         this.addCloseButton();
+    }
+
+    refresh(src, level) {
+        this.buttonGroups.forEach(btnGroup => {
+            btnGroup.buttons.forEach(btn => {
+                btn.destroy();
+            });
+        });
+
+        this.buttonGroups = [];
+
+        this.init(src, level);
     }
 
     addOptionButtons(src) {
@@ -1296,12 +1351,63 @@ class SelectMenuSubScene extends SelectMenuMainScene {
 
     }
 
-    addUpdateButton() {
+    addCreateButton() {
+        let btnGroup = new ButtonGroup();
+        let btn = new Button(0,0,this.game.images.button);
 
+        btn.setName("Create");
+        btn.transform.scale = new vector(.5,.5);
+        btn.transform.position = new vector(btn.transform.size.x * 2, this.height - btn.transform.size.y);
+
+        btn.held = (btn) => {
+            btnGroup.held(btn);
+        }
+
+        btn.clicked = (btn) => {
+            let scene = new CreateScene(420, 350, 250 ,400, btn);
+
+            scene.callBack = (scene, createdObj) => {
+                this.src.push(createdObj);
+                this.refresh(this.src, this.level);
+                scene.destroy();
+
+            };
+            
+            this.loadChildScene(scene);
+            scene.init(this.src, this.level);
+            btnGroup.manageSelect(btn);
+
+        }
+
+        btnGroup.addButton(btn);
+        this.addObject(btn);
+        this.buttonGroups.push(btnGroup);
+    }
+
+    addUpdateButton() {
+        let btnGroup = new ButtonGroup();
+        let btn = new Button(0,0,this.game.images.button);
+
+        btn.setName("Update");
+        btn.transform.scale = new vector(.5,.5);
+        btn.transform.position = new vector(btn.transform.size.x * 3, this.height - btn.transform.size.y);
+
+        btnGroup.addButton(btn);
+        this.addObject(btn);
+        this.buttonGroups.push(btnGroup);
     }
 
     addDeleteButton() {
+        let btnGroup = new ButtonGroup();
+        let btn = new Button(0,0,this.game.images.button);
 
+        btn.setName("Delete");
+        btn.transform.scale = new vector(.5,.5);
+        btn.transform.position = new vector(btn.transform.size.x * 4, this.height - btn.transform.size.y);
+
+        btnGroup.addButton(btn);
+        this.addObject(btn);
+        this.buttonGroups.push(btnGroup);
     }
 
     addCloseButton() {
@@ -1329,4 +1435,119 @@ class SelectMenuSubScene extends SelectMenuMainScene {
 /*
  * End File:
  * ./src/SelectMenuSubScene.js
+ */ 
+
+/*
+ * Start File:
+ * ./src/ZCreateScene.js
+ */ 
+class CreateScene extends SelectMenuMainScene {
+
+    originBtn;
+    callBack;
+    focus;
+    newObj;
+    level;
+
+    inputFields = []; // contains {input, objectField}
+
+    constructor(x,y,width,height, button) {
+        super(x,y,width,height,Scene.DisplayModes.absolute);
+        this.originBtn = button;
+    }
+
+    init(objRoot, level) {
+        console.log("in createScene");
+        console.log(objRoot);
+        this.level = level;
+        this.newObj = {};
+        this.newObj.id = nextId(objRoot);
+
+        if(level == "summoner") {
+            this.newObj.summons = [];
+            this.createButton();
+            this.createInputField(80,80,80,80,this.newObj.name);
+        } else if(level == "summon") {
+            this.newObj.actions = [];
+
+            // create base summon + construct input fields for summon
+        } else {
+            //create base action. immediately select + right side window
+        }
+    }
+
+    createInputField(x,y, objectFieldReference) {
+        let inputFieldObjectFieldMap = {};
+        let clickableField = new GameObject(x,y, this.game.images.input);
+        clickableField.transform.scale = new vector(.1,.1);
+        this.addObject(clickableField);
+
+        let inputField = document.createElement("input");
+        inputField.setAttribute("type","text");
+        document.body.appendChild(inputField);
+
+        clickableField.draw = () => {
+            GameObject.prototype.draw.call(clickableField);
+
+            let ctx = this.cv_context;
+            ctx.font = "10px Verdana";
+            ctx.fillStyle = "black";
+            ctx.textAlign = "left";
+            ctx.fillText("test : " + inputField.value ,x-clickableField.transform.size.x/2, y - clickableField.transform.size.y/2);
+        }
+
+        clickableField.onClick = () => {
+            inputField.focus();
+            this.focus = inputField;
+        }
+        inputFieldObjectFieldMap.input = inputField;
+        inputFieldObjectFieldMap.objectField = objectFieldReference;
+        this.inputFields.push(inputFieldObjectFieldMap);
+    }
+
+    createButton() {
+        let buttonGroup = new ButtonGroup();
+
+        let btn = new Button(0,0, this.game.images.button);
+        btn.transform.scale = new vector(.6,.6);
+        btn.transform.position = new vector(btn.transform.size.x/2, this.height - btn.transform.size.y/2);
+        btn.name = "Create";
+        btn.held = (btn) => {
+            buttonGroup.held(btn);
+
+            this.originBtn.selected = false;
+            this.originBtn.renderer.subImage = 0;
+
+            this.inputFields.forEach(map => {
+                map.objectField = map.input;
+                map.input.remove();
+            });
+            
+            this.callBack && this.callBack(this, this.newObj);
+        };
+
+        this.addObject(btn);
+
+        buttonGroup.addButton(btn);
+
+        this.buttonGroups.push(buttonGroup);
+    }
+
+    draw() {
+        super.draw();
+        if(!this.newObj) {
+            return;
+        }
+        let ctx = this.cv_context;
+        ctx.font = "10px Verdana";
+        ctx.fillStyle = "black";
+        ctx.textAlign = "left";
+        ctx.fillText("ID: " + this.newObj.id ,40, 40);
+
+        ctx.fillText("Create a " + this.level, 20,20);
+    }
+}
+/*
+ * End File:
+ * ./src/ZCreateScene.js
  */ 

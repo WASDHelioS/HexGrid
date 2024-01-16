@@ -1,20 +1,37 @@
 class SelectMenuSubScene extends SelectMenuMainScene {
 
     originBtn;
+    src;
     selected;
     callBack;
+    level;
 
     constructor(x,y,width,height, originBtn) {
         super(x,y,width,height,Scene.DisplayModes.absolute);
         this.originBtn = originBtn;
     }
 
-    init(src) {
+    init(src, level) {
+        this.src = src;
+        this.level = level;
         this.addOptionButtons(src);
         this.addSelectButton();
+        this.addCreateButton();
         this.addUpdateButton();
         this.addDeleteButton();
         this.addCloseButton();
+    }
+
+    refresh(src, level) {
+        this.buttonGroups.forEach(btnGroup => {
+            btnGroup.buttons.forEach(btn => {
+                btn.destroy();
+            });
+        });
+
+        this.buttonGroups = [];
+
+        this.init(src, level);
     }
 
     addOptionButtons(src) {
@@ -63,12 +80,63 @@ class SelectMenuSubScene extends SelectMenuMainScene {
 
     }
 
-    addUpdateButton() {
+    addCreateButton() {
+        let btnGroup = new ButtonGroup();
+        let btn = new Button(0,0,this.game.images.button);
 
+        btn.setName("Create");
+        btn.transform.scale = new vector(.5,.5);
+        btn.transform.position = new vector(btn.transform.size.x * 2, this.height - btn.transform.size.y);
+
+        btn.held = (btn) => {
+            btnGroup.held(btn);
+        }
+
+        btn.clicked = (btn) => {
+            let scene = new CreateScene(420, 350, 250 ,400, btn);
+
+            scene.callBack = (scene, createdObj) => {
+                this.src.push(createdObj);
+                this.refresh(this.src, this.level);
+                scene.destroy();
+
+            };
+            
+            this.loadChildScene(scene);
+            scene.init(this.src, this.level);
+            btnGroup.manageSelect(btn);
+
+        }
+
+        btnGroup.addButton(btn);
+        this.addObject(btn);
+        this.buttonGroups.push(btnGroup);
+    }
+
+    addUpdateButton() {
+        let btnGroup = new ButtonGroup();
+        let btn = new Button(0,0,this.game.images.button);
+
+        btn.setName("Update");
+        btn.transform.scale = new vector(.5,.5);
+        btn.transform.position = new vector(btn.transform.size.x * 3, this.height - btn.transform.size.y);
+
+        btnGroup.addButton(btn);
+        this.addObject(btn);
+        this.buttonGroups.push(btnGroup);
     }
 
     addDeleteButton() {
+        let btnGroup = new ButtonGroup();
+        let btn = new Button(0,0,this.game.images.button);
 
+        btn.setName("Delete");
+        btn.transform.scale = new vector(.5,.5);
+        btn.transform.position = new vector(btn.transform.size.x * 4, this.height - btn.transform.size.y);
+
+        btnGroup.addButton(btn);
+        this.addObject(btn);
+        this.buttonGroups.push(btnGroup);
     }
 
     addCloseButton() {

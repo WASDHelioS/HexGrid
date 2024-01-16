@@ -23,6 +23,7 @@ window.onload = function ()
             { name: "buttonLeft", url: "images/buttonsLeft.png", subImgTotal: 3, perRow: 1},
             { name: "buttonRight", url: "images/buttonsRight.png", subImgTotal: 3, perRow: 1},
 
+            { name: "input", url: "images/input.png"},
         ]
         , function ()
         {

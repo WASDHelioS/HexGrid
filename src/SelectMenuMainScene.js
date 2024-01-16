@@ -58,25 +58,25 @@ class SelectMenuMainScene extends Scene {
 
             scene.callBack = (scene) => {
 
-            currentSummoner = scene.selected;
-            currentSummon = null;
-            currentAction = null;
+                currentSummoner = scene.selected;
+                currentSummon = null;
+                currentAction = null;
 
-            scene.originBtn.selected = false;
-            scene.originBtn.renderer.subImage = 0;
-            this.parentScene.load();
-            scene.destroy();
+                scene.originBtn.selected = false;
+                scene.originBtn.renderer.subImage = 0;
+                this.parentScene.load();
+                scene.destroy();
 
-            summonButton.selectable = true;
-            summonButton.renderer.subImage = 0;
+                summonButton.selectable = true;
+                summonButton.renderer.subImage = 0;
 
-            actionButton.selectable = false;
-            actionButton.renderer.subImage = 4;
+                actionButton.selectable = false;
+                actionButton.renderer.subImage = 4;
 
             };
 
             this.loadChildScene(scene);
-            scene.init(summoners);
+            scene.init(summoners, "summoner");
             buttonGroup.manageSelect(btn);
         };
 
@@ -104,7 +104,7 @@ class SelectMenuMainScene extends Scene {
             };
 
             this.loadChildScene(scene);
-            scene.init(currentSummoner.summons);
+            scene.init(currentSummoner.summons, "summon");
             buttonGroup.manageSelect(btn);
         };
 
@@ -127,7 +127,7 @@ class SelectMenuMainScene extends Scene {
             };
 
             this.loadChildScene(scene);
-            scene.init(currentSummon.actions);
+            scene.init(currentSummon.actions, "action");
             buttonGroup.manageSelect(btn); 
         };
 

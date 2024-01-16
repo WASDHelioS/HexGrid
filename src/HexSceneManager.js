@@ -36,22 +36,41 @@ class HexSceneManager {
     }
 
     loadForOrientation() {
+        if(!currentAction) {
+            this.replaceCenterHexBy(new Hex(this.scene.width/2,this.scene.height/2,this.hexagonWhite));
+        }
+
         this.hoveredHex = null;
         this.hexMapValidTargets.clear();
         this.hexMapTargets.clear();
         this.greyOut();
 
         if(currentAction) {
+            if(!(this.centerHex instanceof HexChar)) {
+                this.replaceCenterHexBy(new HexChar(this.scene.width/2,this.scene.height/2,this.hexagonGreen, ()=> this.loadForOrientation()));
+            }
             this.addValidHexes();
             this.colorValidHexes();
         }
+    }
+
+    replaceCenterHexBy(hex) {
+        let cubeZero = getByValue(this.hexMap, this.centerHex);
+        this.centerHex.cube = cubeZero;
+        this.centerHex.destroy();
+
+        this.centerHex = hex;
+        this.centerHex.cube = cubeZero;
+        this.setHexPositionData(this.centerHex, cubeZero);
+        this.hexMap.set(cubeZero, this.centerHex);
+        this.scene.addObject(this.centerHex);
     }
 
     constructGrid(amount) {
 
         let cubeZero = new Cube(0,0,0);
 
-        this.centerHex =  new HexChar(this.scene.width/2,this.scene.height/2,this.hexagonGreen, ()=> this.loadForOrientation());
+        this.centerHex =  new Hex(this.scene.width/2,this.scene.height/2,this.hexagonWhite);
         this.centerHex.cube = cubeZero;
 
         this.hexMap.set(cubeZero, this.centerHex);
@@ -92,14 +111,15 @@ class HexSceneManager {
     //transforms cube positions to x-y coordinates and sets
     placeGrid() {
         this.hexMap.forEach((hex,cube) => {
-            let size = hex.transform.size;
+            this.setHexPositionData(hex, cube);
+        });
+    }
 
-            let v = mapCubeToPositionVector(hex,cube);
-
-            hex.transform.position = v;
-
-            hex.radius = Math.sqrt(3)/2 * ((hex.transform.position.x + size.x / 4) - (hex.transform.position.x - size.x / 4));
-        })
+    setHexPositionData(hex, cube) {
+        let size = hex.transform.size;
+        let v = mapCubeToPositionVector(hex,cube);
+        hex.transform.position = v;
+        hex.radius = Math.sqrt(3)/2 * ((hex.transform.position.x + size.x / 4) - (hex.transform.position.x - size.x / 4));
     }
 
     addGrid() {
@@ -110,11 +130,14 @@ class HexSceneManager {
 
     greyOut() {
         this.hexMap.forEach((hex, cube) => {
-
-            if(!cube_matches(cube, new Cube(0,0,0))) {
-                hex.renderer.sprite = this.hexagonGrey;
+            if(currentAction) {
+                if(!cube_matches(cube, new Cube(0,0,0))) {
+                    hex.renderer.sprite = this.hexagonGrey;
+                } else {
+                    hex.renderer.sprite = this.hexagonGreen;
+                }
             } else {
-                hex.renderer.sprite = this.hexagonGreen;
+                hex.renderer.sprite = this.hexagonGrey;
             }
         });
     }
@@ -246,9 +269,10 @@ class HexSceneManager {
 
         pattern.forEach(p => {
             if(p.source.includes("SOURCE")) {
-
+                this.hexMapTargets.set(hexSource.cube, hexSource);
                 return;
             }
+
             let translatedSource = p.source.map(d=> {
                 
                 let direction = CubeDirection[d];

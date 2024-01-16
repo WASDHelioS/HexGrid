@@ -2,6 +2,7 @@ class Button extends GameObject {
 
     hovered; // bool
     selected; //bool
+    isClicked; // bool
     clicked; //func
     held; //func
     selectable = true; //bool
@@ -10,7 +11,7 @@ class Button extends GameObject {
     textSize = 10;
 
     constructor(x,y, image) {
-        super(x,y,image,1)
+        super(x,y,image,1);
     }
 
     setObj(obj) {
@@ -25,6 +26,9 @@ class Button extends GameObject {
     update (deltaTime) {
         super.update(deltaTime);
 
+        if(!GameInput.g_mouseDown) {
+            this.isClicked = false;
+        }
     }
 
     draw() {
@@ -40,6 +44,7 @@ class Button extends GameObject {
     }
 
     onClick(btns) {
+        this.isClicked = true;
         if(this.selected || !this.selectable) {
             return;
         }
@@ -49,11 +54,13 @@ class Button extends GameObject {
     }
 
     onMouseHeld(btns) {
-        if(this.selected || !this.selectable) {
-            return;
-        }
-        if(btns.left) {
-            this.held && this.held(this);
+        if(this.isClicked) {
+            if(this.selected || !this.selectable) {
+                return;
+            }
+            if(btns.left) {
+                this.held && this.held(this);
+            }
         }
     }
 }

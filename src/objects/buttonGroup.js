@@ -31,7 +31,9 @@ class ButtonGroup {
     }
 
     held(btn) {
-        btn.renderer.subImage = 2;
+        if(btn.isClicked) {
+            btn.renderer.subImage = 2;
+        }
     }
 
     isWithin(mousePos, button) {
