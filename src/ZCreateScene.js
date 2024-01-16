@@ -55,6 +55,7 @@ class CreateScene extends SelectMenuMainScene {
             inputField.focus();
             this.focus = inputField;
         }
+
         inputFieldObjectFieldMap.input = inputField;
         inputFieldObjectFieldMap.objectField = objectFieldReference;
         this.inputFields.push(inputFieldObjectFieldMap);
@@ -72,11 +73,6 @@ class CreateScene extends SelectMenuMainScene {
 
             this.originBtn.selected = false;
             this.originBtn.renderer.subImage = 0;
-
-            this.inputFields.forEach(map => {
-                map.objectField = map.input;
-                map.input.remove();
-            });
             
             this.callBack && this.callBack(this, this.newObj);
         };
@@ -100,5 +96,16 @@ class CreateScene extends SelectMenuMainScene {
         ctx.fillText("ID: " + this.newObj.id ,40, 40);
 
         ctx.fillText("Create a " + this.level, 20,20);
+    }
+
+    destroy() {
+        super.destroy();
+
+        console.log(this.inputFields);
+        this.inputFields.forEach(map => {
+            console.log(map);
+            map.objectField = map.input;
+            map.input.remove();
+        });
     }
 }

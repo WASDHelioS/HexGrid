@@ -844,6 +844,8 @@ class Scene
     {
         if (!this.destroyed)
         {
+            this.clearChildScenes();
+
             for (var i = 0; i < this.activeObjects.length; i++)
             {
                 this.activeObjects[i].destroy();
@@ -856,6 +858,15 @@ class Scene
 
             document.getElementById(this.id).remove();
         }
+    }
+
+    clearChildScenes() {
+        game.activeScenes.forEach(scene => {
+            if(scene.parentScene === this) {
+                console.log(this);
+                scene.destroy();
+            }
+        })
     }
 
     backgroundColor =

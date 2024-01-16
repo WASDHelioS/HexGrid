@@ -28,6 +28,9 @@ window.onload = function ()
         , function ()
         {
             this.preloadJsonThenStart("./patterns.json", function() {
+
+                readAndApplyQueryParams();
+
                 this.createMainScene(game);
             })
         });
@@ -189,10 +192,30 @@ function nextId(obj) {
     return highest + 1;
 }
 
-function clearChildScenes(parentScene) {
-    game.activeScenes.forEach(scene => {
-        if(scene.parentScene === parentScene) {
-            scene.destroy();
+function readAndApplyQueryParams() {
+    let queryParamsMap = parseQueryParams(window.location.search);
+
+    queryParamsMap.forEach(strArr => {
+        switch(strArr[0]){
+            case "summoner":
+                console.log("setting summoner")
+                currentSummoner = summoners.find(summ => summ.id == strArr[1]);
+                return;
+            case "summon":
+                console.log("setting summon")
+                currentSummon = currentSummoner.summons.find(summ => summ.id == strArr[1]);
+                return;
+            case "action":
+                console.log("setting action")
+                currentAction = currentSummon.actions.find(act => act.id == strArr[1]);
+                return;
         }
-    })
+    });
 }
+
+function parseQueryParams(qs) {
+    return qs.
+      replace(/^\?/, '').
+      split('&').
+      map(str => str.split('=').map(v => decodeURIComponent(v)));
+  }

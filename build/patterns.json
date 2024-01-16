@@ -131,6 +131,40 @@
                         ]
                     }
                 ]
+                },
+                {
+                    "id":2,
+                    "name":"SpearGuy",
+                        "actions": [{
+                            "id":1,
+                            "name":"Pierce",
+                            "distanceMin":1,
+                            "distanceMax":1,
+                            "rangeOfVision":"CONE",
+                            "diagonalVision":"NONE",
+                            "pattern": [
+                                {
+                                    "source":["SOURCE"]
+                                },
+                                {
+                                    "source":["N"]
+                                }
+                            ]
+                        },
+                        {
+                            "id":2,
+                            "name":"Poke",
+                            "distanceMin":2,
+                            "distanceMax":2,
+                            "rangeOfVision":"CONE",
+                            "diagonalVision":"IN",
+                            "pattern": [
+                                {
+                                    "source":["SOURCE"]
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         }

@@ -60,6 +60,9 @@ window.onload = function ()
         , function ()
         {
             this.preloadJsonThenStart("./patterns.json", function() {
+
+                readAndApplyQueryParams();
+
                 this.createMainScene(game);
             })
         });
@@ -212,10 +215,7 @@ async function preloadJsonThenStart (location, onComplete)
 
 function nextId(obj) {
     let highest = 0;
-    console.log(obj);
     for(let item of obj) {
-        console.log(item.id);
-
         if(item.id > highest) {
             highest = item.id;
         }
@@ -224,13 +224,33 @@ function nextId(obj) {
     return highest + 1;
 }
 
-function clearChildScenes(parentScene) {
-    game.activeScenes.forEach(scene => {
-        if(scene.parentScene === parentScene) {
-            scene.destroy();
+function readAndApplyQueryParams() {
+    let queryParamsMap = parseQueryParams(window.location.search);
+
+    queryParamsMap.forEach(strArr => {
+        switch(strArr[0]){
+            case "summoner":
+                console.log("setting summoner")
+                currentSummoner = summoners.find(summ => summ.id == strArr[1]);
+                return;
+            case "summon":
+                console.log("setting summon")
+                currentSummon = currentSummoner.summons.find(summ => summ.id == strArr[1]);
+                return;
+            case "action":
+                console.log("setting action")
+                currentAction = currentSummon.actions.find(act => act.id == strArr[1]);
+                return;
         }
-    })
+    });
 }
+
+function parseQueryParams(qs) {
+    return qs.
+      replace(/^\?/, '').
+      split('&').
+      map(str => str.split('=').map(v => decodeURIComponent(v)));
+  }
 /*
  * End File:
  * ./src/game.js
@@ -1070,12 +1090,16 @@ class SelectMenuMainScene extends Scene {
         summonerButton.textSize = 14;
         
         summonButton.transform.scale = new vector(0.8, 1);
-        summonButton.selectable = false;
+        if(!currentSummoner) {
+            summonButton.selectable = false;
+        }
         summonButton.setName("Summons");
         summonButton.textSize = 14;
 
         actionButton.transform.scale = new vector(0.8, 1);
-        actionButton.selectable = false;
+        if(!currentSummon) {
+            actionButton.selectable = false;
+        }
         actionButton.setName("Actions");
         actionButton.textSize = 14;
 
@@ -1090,7 +1114,7 @@ class SelectMenuMainScene extends Scene {
         buttonGroup.addButton(actionButton);
 
         summonerButton.clicked = (btn) => { 
-            clearChildScenes(this);
+            this.clearChildScenes();
             let scene = new SelectMenuSubScene(225, 100, 450 ,250, btn);
 
             scene.callBack = (scene) => {
@@ -1122,7 +1146,7 @@ class SelectMenuMainScene extends Scene {
         }
 
         summonButton.clicked = (btn) => { 
-            clearChildScenes(this); 
+            this.clearChildScenes(); 
             let scene = new SelectMenuSubScene(225, 100, 450 ,250, btn);
 
             scene.callBack = (scene) => {
@@ -1150,7 +1174,7 @@ class SelectMenuMainScene extends Scene {
         }
 
         actionButton.clicked = (btn) => { 
-            clearChildScenes(this); 
+            this.clearChildScenes(); 
             let scene = new SelectMenuSubScene(225, 100, 450 ,250, btn);
 
             scene.callBack = (scene) => {
@@ -1283,7 +1307,6 @@ class SelectMenuSubScene extends SelectMenuMainScene {
 
     init(src, level) {
         this.src = src;
-        console.log(src);
         this.level = level;
         this.addOptionButtons(src);
         this.addSelectButton();
@@ -1457,8 +1480,6 @@ class CreateScene extends SelectMenuMainScene {
     }
 
     init(objRoot, level) {
-        console.log("in createScene");
-        console.log(objRoot);
         this.level = level;
         this.newObj = {};
         this.newObj.id = nextId(objRoot);
@@ -1500,6 +1521,7 @@ class CreateScene extends SelectMenuMainScene {
             inputField.focus();
             this.focus = inputField;
         }
+
         inputFieldObjectFieldMap.input = inputField;
         inputFieldObjectFieldMap.objectField = objectFieldReference;
         this.inputFields.push(inputFieldObjectFieldMap);
@@ -1517,11 +1539,6 @@ class CreateScene extends SelectMenuMainScene {
 
             this.originBtn.selected = false;
             this.originBtn.renderer.subImage = 0;
-
-            this.inputFields.forEach(map => {
-                map.objectField = map.input;
-                map.input.remove();
-            });
             
             this.callBack && this.callBack(this, this.newObj);
         };
@@ -1545,6 +1562,17 @@ class CreateScene extends SelectMenuMainScene {
         ctx.fillText("ID: " + this.newObj.id ,40, 40);
 
         ctx.fillText("Create a " + this.level, 20,20);
+    }
+
+    destroy() {
+        super.destroy();
+
+        console.log(this.inputFields);
+        this.inputFields.forEach(map => {
+            console.log(map);
+            map.objectField = map.input;
+            map.input.remove();
+        });
     }
 }
 /*

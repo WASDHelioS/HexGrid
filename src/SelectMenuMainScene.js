@@ -33,12 +33,16 @@ class SelectMenuMainScene extends Scene {
         summonerButton.textSize = 14;
         
         summonButton.transform.scale = new vector(0.8, 1);
-        summonButton.selectable = false;
+        if(!currentSummoner) {
+            summonButton.selectable = false;
+        }
         summonButton.setName("Summons");
         summonButton.textSize = 14;
 
         actionButton.transform.scale = new vector(0.8, 1);
-        actionButton.selectable = false;
+        if(!currentSummon) {
+            actionButton.selectable = false;
+        }
         actionButton.setName("Actions");
         actionButton.textSize = 14;
 
@@ -53,7 +57,7 @@ class SelectMenuMainScene extends Scene {
         buttonGroup.addButton(actionButton);
 
         summonerButton.clicked = (btn) => { 
-            clearChildScenes(this);
+            this.clearChildScenes();
             let scene = new SelectMenuSubScene(225, 100, 450 ,250, btn);
 
             scene.callBack = (scene) => {
@@ -85,7 +89,7 @@ class SelectMenuMainScene extends Scene {
         }
 
         summonButton.clicked = (btn) => { 
-            clearChildScenes(this); 
+            this.clearChildScenes(); 
             let scene = new SelectMenuSubScene(225, 100, 450 ,250, btn);
 
             scene.callBack = (scene) => {
@@ -113,7 +117,7 @@ class SelectMenuMainScene extends Scene {
         }
 
         actionButton.clicked = (btn) => { 
-            clearChildScenes(this); 
+            this.clearChildScenes(); 
             let scene = new SelectMenuSubScene(225, 100, 450 ,250, btn);
 
             scene.callBack = (scene) => {
