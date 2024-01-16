@@ -1282,6 +1282,28 @@ class SelectMenuMainScene extends Scene {
 
         this.buttonGroups.forEach(bg => bg.hover(translatedMousePos));
     }
+
+
+    addCloseButton() {
+        let buttonGroup = new ButtonGroup();
+
+        let xButton = new Button(0,0, this.game.images.buttonX);
+        xButton.transform.scale = new vector(.6,.6);
+        xButton.transform.position = new vector(this.width - xButton.transform.size.x/2, xButton.transform.size.y/2);
+        xButton.held = (btn) => {
+            buttonGroup.held(btn);
+
+            this.originBtn.selected = false;
+            this.originBtn.renderer.subImage = 0;
+            this.destroy();
+        };
+
+        this.addObject(xButton);
+
+        buttonGroup.addButton(xButton);
+
+        this.buttonGroups.push(buttonGroup);
+    }
 }
 /*
  * End File:
@@ -1313,7 +1335,7 @@ class SelectMenuSubScene extends SelectMenuMainScene {
         this.addCreateButton();
         this.addUpdateButton();
         this.addDeleteButton();
-        this.addCloseButton();
+        super.addCloseButton();
     }
 
     refresh(src, level) {
@@ -1433,26 +1455,7 @@ class SelectMenuSubScene extends SelectMenuMainScene {
         this.buttonGroups.push(btnGroup);
     }
 
-    addCloseButton() {
-        let buttonGroup = new ButtonGroup();
 
-        let xButton = new Button(0,0, this.game.images.buttonX);
-        xButton.transform.scale = new vector(.6,.6);
-        xButton.transform.position = new vector(this.width - xButton.transform.size.x/2, xButton.transform.size.y/2);
-        xButton.held = (btn) => {
-            buttonGroup.held(btn);
-
-            this.originBtn.selected = false;
-            this.originBtn.renderer.subImage = 0;
-            this.destroy();
-        };
-
-        this.addObject(xButton);
-
-        buttonGroup.addButton(xButton);
-
-        this.buttonGroups.push(buttonGroup);
-    }
 
 }
 /*
@@ -1480,18 +1483,20 @@ class CreateScene extends SelectMenuMainScene {
     }
 
     init(objRoot, level) {
+        super.addCloseButton();
+
         this.level = level;
         this.newObj = {};
         this.newObj.id = nextId(objRoot);
 
         if(level == "summoner") {
             this.newObj.summons = [];
-            this.createButton();
+            this.addCreateButton();
             this.createInputField(120,80,'name');
         } else if(level == "summon") {
             this.newObj.actions = [];
             this.newObj.actions = [];
-            this.createButton();
+            this.addCreateButton();
             this.createInputField(120, 80, 'name');
             // create base summon + construct input fields for summon
         } else {
@@ -1532,7 +1537,7 @@ class CreateScene extends SelectMenuMainScene {
         this.inputFields.push(inputFieldObjectFieldMap);
     }
 
-    createButton() {
+    addCreateButton() {
         let buttonGroup = new ButtonGroup();
 
         let btn = new Button(0,0, this.game.images.button);

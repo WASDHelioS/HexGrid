@@ -14,18 +14,20 @@ class CreateScene extends SelectMenuMainScene {
     }
 
     init(objRoot, level) {
+        super.addCloseButton();
+
         this.level = level;
         this.newObj = {};
         this.newObj.id = nextId(objRoot);
 
         if(level == "summoner") {
             this.newObj.summons = [];
-            this.createButton();
+            this.addCreateButton();
             this.createInputField(120,80,'name');
         } else if(level == "summon") {
             this.newObj.actions = [];
             this.newObj.actions = [];
-            this.createButton();
+            this.addCreateButton();
             this.createInputField(120, 80, 'name');
             // create base summon + construct input fields for summon
         } else {
@@ -66,7 +68,7 @@ class CreateScene extends SelectMenuMainScene {
         this.inputFields.push(inputFieldObjectFieldMap);
     }
 
-    createButton() {
+    addCreateButton() {
         let buttonGroup = new ButtonGroup();
 
         let btn = new Button(0,0, this.game.images.button);

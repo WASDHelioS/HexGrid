@@ -19,7 +19,7 @@ class SelectMenuSubScene extends SelectMenuMainScene {
         this.addCreateButton();
         this.addUpdateButton();
         this.addDeleteButton();
-        this.addCloseButton();
+        super.addCloseButton();
     }
 
     refresh(src, level) {
@@ -139,25 +139,6 @@ class SelectMenuSubScene extends SelectMenuMainScene {
         this.buttonGroups.push(btnGroup);
     }
 
-    addCloseButton() {
-        let buttonGroup = new ButtonGroup();
 
-        let xButton = new Button(0,0, this.game.images.buttonX);
-        xButton.transform.scale = new vector(.6,.6);
-        xButton.transform.position = new vector(this.width - xButton.transform.size.x/2, xButton.transform.size.y/2);
-        xButton.held = (btn) => {
-            buttonGroup.held(btn);
-
-            this.originBtn.selected = false;
-            this.originBtn.renderer.subImage = 0;
-            this.destroy();
-        };
-
-        this.addObject(xButton);
-
-        buttonGroup.addButton(xButton);
-
-        this.buttonGroups.push(buttonGroup);
-    }
 
 }
