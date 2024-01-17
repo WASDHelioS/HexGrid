@@ -1,26 +1,32 @@
 class SelectMenuMainScene extends Scene {
 
+    targetPosition;
+    originPosition;
+    activeTween;
+
     x;
     y;
     width;
     height;
 
     buttonGroups = [];
+    collapsed = false;
 
-    constructor(x,y,width,height) {
+    constructor(x,y,dx,dy,width,height) {
         super(x,y,width,height,Scene.DisplayModes.absolute);
-        this.x = x;
-        this.y = y;
         this.width = width;
         this.height = height;
+
+        this.originPosition = new vector(x,y);
+        this.targetPosition = new vector(dx,dy)
     }
 
     init() {
-
         this.addHierarchyButtons();
         this.addImportButton();
         this.addExportButton();
         this.addResetButton();
+        this.addCollapseButton();
     }
 
     addHierarchyButtons() {
@@ -58,11 +64,13 @@ class SelectMenuMainScene extends Scene {
 
         summonerButton.clicked = (btn) => { 
             this.clearChildScenes();
-            let scene = new SelectMenuSubScene(225, 100, 450 ,250, btn);
+            let scene = new SelectMenuSubScene(225, 100, null,null, 450 ,250, btn);
 
             scene.callBack = (scene) => {
 
                 currentSummoner = scene.selected;
+
+                updateQueryParams("summoner="+currentSummoner.id);
                 currentSummon = null;
                 currentAction = null;
 
@@ -90,11 +98,14 @@ class SelectMenuMainScene extends Scene {
 
         summonButton.clicked = (btn) => { 
             this.clearChildScenes(); 
-            let scene = new SelectMenuSubScene(225, 100, 450 ,250, btn);
+            let scene = new SelectMenuSubScene(225, 100,null,null, 450 ,250, btn);
 
             scene.callBack = (scene) => {
 
                 currentSummon = scene.selected;
+
+                updateQueryParams("summoner="+currentSummoner.id + "&summon="+currentSummon.id);
+
                 currentAction = null;
 
                 scene.originBtn.selected = false;
@@ -118,11 +129,12 @@ class SelectMenuMainScene extends Scene {
 
         actionButton.clicked = (btn) => { 
             this.clearChildScenes(); 
-            let scene = new SelectMenuSubScene(225, 100, 450 ,250, btn);
+            let scene = new SelectMenuSubScene(225, 100,null,null, 450 ,250, btn);
 
             scene.callBack = (scene) => {
 
                 currentAction = scene.selected;
+                updateQueryParams("summoner="+currentSummoner.id + "&summon="+currentSummon.id+"&action="+currentAction.id);
 
                 scene.originBtn.selected = false;
                 scene.originBtn.renderer.subImage = 0;
@@ -213,9 +225,11 @@ class SelectMenuMainScene extends Scene {
             return;
         }
 
-        let translatedMousePos = new vector(GameInput.mousePosition.x - this.x, GameInput.mousePosition.y-this.y);
+        let translatedMousePos = new vector(GameInput.mousePosition.x - this.position.x, GameInput.mousePosition.y-this.position.y);
 
-        if(translatedMousePos.x < 0 || translatedMousePos.y < 0 || translatedMousePos.x > this.width || translatedMousePos.y > this.height) {
+
+
+        if(translatedMousePos.x < -100 || translatedMousePos.y < -100 || translatedMousePos.x > this.width + 100 || translatedMousePos.y > this.height + 100) {
             return;
         }
 
@@ -236,9 +250,7 @@ class SelectMenuMainScene extends Scene {
         xButton.held = (btn) => {
             buttonGroup.held(btn);
 
-            this.originBtn.selected = false;
-            this.originBtn.renderer.subImage = 0;
-            this.destroy();
+            this.close();
         };
 
         this.addObject(xButton);
@@ -246,5 +258,75 @@ class SelectMenuMainScene extends Scene {
         buttonGroup.addButton(xButton);
 
         this.buttonGroups.push(buttonGroup);
+    }
+
+    close() {
+        this.originBtn.selected = false;
+        this.originBtn.renderer.subImage = 0;
+        this.destroy();
+    }
+
+    addCollapseButton() {
+        let buttonGroup = new ButtonGroup();
+
+        let collapseButton = new Button(0,0, this.game.images.buttonLeft);
+        collapseButton.transform.scale = new vector(.6,.6);
+        collapseButton.transform.position = new vector(this.width - collapseButton.transform.size.x/2, collapseButton.transform.size.y/2);
+        
+        collapseButton.held = (btn) => {
+            buttonGroup.held(btn);
+        };
+
+        collapseButton.clicked = (btn) => {
+
+            this.createTween(this.determineVector() ,800, null, this).start();
+
+            this.flipCollapseButton(btn);
+            this.collapsed = this.toggle(this.collapsed);
+            this.getChildScenes().forEach(scene => scene.close());
+            console.log(this.collapsed);
+        }
+
+        this.addObject(collapseButton);
+        buttonGroup.addButton(collapseButton);
+        this.buttonGroups.push(buttonGroup);
+    }
+
+    toggle(bool) {
+        return !bool;
+    }
+
+    determineVector() {
+        if(this.collapsed) {
+            return this.originPosition;
+        } else {
+            return this.targetPosition;
+        }
+    }
+
+    flipCollapseButton(btn) {
+        if(btn.renderer.sprite == this.game.images.buttonRight) {
+            btn.renderer.sprite = this.game.images.buttonLeft;
+        } else {
+            btn.renderer.sprite = this.game.images.buttonRight;
+        }
+    }
+
+    createTween (target, time, onDone, context)
+    {
+        let tween = new TWEEN.Tween(context.position)
+            .to({ x: target.x, y: target.y }, time)
+            .easing(TWEEN.Easing.Bounce.Out)
+            .onComplete(() => { context.activeTween = null; onDone && onDone.call(context); });
+        return tween.onStart(() => context.stopActiveTween(tween));
+    }
+
+    stopActiveTween (tween)
+    {
+        if (this.activeTween) 
+        {
+            this.activeTween.stop();
+        }
+        this.activeTween = tween;
     }
 }

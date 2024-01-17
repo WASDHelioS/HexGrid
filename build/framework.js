@@ -861,12 +861,16 @@ class Scene
     }
 
     clearChildScenes() {
-        game.activeScenes.forEach(scene => {
+        this.game.activeScenes.forEach(scene => {
             if(scene.parentScene === this) {
                 console.log(this);
                 scene.destroy();
             }
         })
+    }
+
+    getChildScenes() {
+        return this.game.activeScenes.filter(scene => scene.parentScene === this);
     }
 
     backgroundColor =

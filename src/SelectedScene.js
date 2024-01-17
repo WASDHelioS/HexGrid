@@ -2,8 +2,6 @@ class SelectedScene extends Scene {
 
     constructor(x,y,width,height) {
         super(x,y,width,height,Scene.DisplayModes.absolute);
-        this.x = x;
-        this.y = y;
         this.width = width;
         this.height = height;
     }

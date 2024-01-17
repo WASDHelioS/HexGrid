@@ -6,8 +6,8 @@ class SelectMenuSubScene extends SelectMenuMainScene {
     callBack;
     level;
 
-    constructor(x,y,width,height, originBtn) {
-        super(x,y,width,height,Scene.DisplayModes.absolute);
+    constructor(x,y,dx,dy,width,height, originBtn) {
+        super(x,y,dx,dy,width,height,Scene.DisplayModes.absolute);
         this.originBtn = originBtn;
     }
 
@@ -93,7 +93,7 @@ class SelectMenuSubScene extends SelectMenuMainScene {
         }
 
         btn.clicked = (btn) => {
-            let scene = new CreateScene(420, 350, 250 ,400, btn);
+            let scene = new CreateScene(420, 350, null, null, 250 ,400, btn);
 
             scene.callBack = (scene, createdObj) => {
                 this.src.push(createdObj);

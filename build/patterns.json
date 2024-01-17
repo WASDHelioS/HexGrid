@@ -327,6 +327,12 @@
                                 },
                                 {
                                     "source":["SE"]
+                                },
+                                {
+                                    "source":["NW","SW"]
+                                },
+                                {
+                                    "source":["NE","SE"]
                                 }
                             ],
                             "targetPattern": [

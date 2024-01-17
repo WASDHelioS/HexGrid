@@ -46,7 +46,7 @@ createMainScene = function (game)
 
     selectedScene = new SelectedScene(10,10, 900, 50);
 
-    menuScene = new SelectMenuMainScene(0, 100, 200, 600);
+    menuScene = new SelectMenuMainScene(0, 100,-170,100, 200, 600);
 
     scene.loadChildScene(selectedScene);
     scene.loadChildScene(menuScene);
@@ -219,4 +219,9 @@ function parseQueryParams(qs) {
       replace(/^\?/, '').
       split('&').
       map(str => str.split('=').map(v => decodeURIComponent(v)));
-  }
+}
+
+function updateQueryParams(str) {
+    var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?' +str;
+    window.history.replaceState({path: newurl}, "", newurl);
+}

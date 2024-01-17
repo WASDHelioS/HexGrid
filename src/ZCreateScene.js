@@ -8,8 +8,8 @@ class CreateScene extends SelectMenuMainScene {
 
     inputFields = []; // contains {property, input}
 
-    constructor(x,y,width,height, button) {
-        super(x,y,width,height,Scene.DisplayModes.absolute);
+    constructor(x,y,dx,dy,width,height, button) {
+        super(x,y,dx,dy,width,height,Scene.DisplayModes.absolute);
         this.originBtn = button;
     }
 
