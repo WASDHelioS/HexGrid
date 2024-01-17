@@ -41,6 +41,8 @@ class HexScene extends Scene
     draw ()
     {
         super.draw();
+
+        this.hexSceneManager.drawText(this.cv_context);
     }
 
     detectMouse() {

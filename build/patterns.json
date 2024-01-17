@@ -245,17 +245,20 @@
                                 {
                                     "source": [
                                         "N"
-                                    ]
+                                    ],
+                                    "dice":"1d6"
                                 },
                                 {
                                     "source": [
                                         "NE"
-                                    ]
+                                    ],
+                                    "dice":"1d4"
                                 },
                                 {
                                     "source": [
                                         "NW"
-                                    ]
+                                    ],
+                                    "dice":"1d4"
                                 }
                             ],
                             "targetPattern": [
@@ -267,7 +270,8 @@
                                 {
                                     "source": [
                                         "N"
-                                    ]
+                                    ],
+                                    "dice":"1d4"
                                 }
                             ]
                         },

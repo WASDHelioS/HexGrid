@@ -7,8 +7,8 @@ class HexSceneManager {
 
     hexMap = new Map();
 
-    hexMapRanges = new Map();
-    hexMapTargets = new Map();
+    hexMapRanges = new Map(); // map of k=cube, v = {hex, dice}
+    hexMapTargets = new Map(); // map of k = cube, v = {hex, dice}
 
     hexagonRed;
     hexagonGreen;
@@ -131,7 +131,7 @@ class HexSceneManager {
     greyOut() {
         this.hexMap.forEach((hex, cube) => {
             if(currentAction) {
-                if(!cube_matches(cube, new Cube(0,0,0))) {
+                if(!cube_matches(cube, this.centerHex.cube)) {
                     hex.renderer.sprite = this.hexagonGrey;
                 } else {
                     hex.renderer.sprite = this.hexagonGreen;
@@ -144,13 +144,12 @@ class HexSceneManager {
 
     /** Load valid target hexes */
 
-    // Reads json and for a given rangeOfVision, marks hexes in those directions (& potentially diagonals)
     addValidHexes() {
         let rangePattern = currentAction.rangePattern;
         rangePattern.forEach(p => {
+            let dice = p.dice;
 
             let translatedSource = p.source.map(d=> {
-
                 let direction = CubeDirection[d];
                 return direction_translate_to_offset_from_north(direction, this.centerHex.direction);
             });
@@ -161,19 +160,19 @@ class HexSceneManager {
             });
 
             let hexTarget = getByKey(this.hexMap, cube);
-            this.hexMapRanges.set(cube, hexTarget);
-        })
+            this.hexMapRanges.set(cube, {hex: hexTarget, dice: dice});
+        });
 
         this.hexMapRanges.forEach((h,c) => {
-            h.renderer.sprite = this.hexagonWhite;
+            h.hex.renderer.sprite = this.hexagonWhite;
         })
     }
 
     colorValidHexes() {
-        this.hexMapRanges.forEach((hex,cube) => {
+        this.hexMapRanges.forEach((h,cube) => {
             
-            if(!cube_matches(hex.cube, new Cube(0,0,0))) {
-                hex.renderer.sprite = this.hexagonWhite;
+            if(!cube_matches(cube, this.centerHex.cube)) {
+                h.hex.renderer.sprite = this.hexagonWhite;
             }
 
         })
@@ -185,14 +184,10 @@ class HexSceneManager {
     let found = null;
 
         for(let [k,h] of this.hexMapRanges) {
-            if(this.isWithin(mousePos, h.transform.position,h.radius)) {
+            if(this.isWithin(mousePos, h.hex.transform.position,h.hex.radius)) {
                 found = true;
-                if(h !== this.hoveredHex) {
-                    this.updateHexHovered(h);
-                        cube_distance(
-                            getByValue(this.hexMapRanges, h),
-                            new Cube(0,0,0)
-                    );
+                if(h.hex !== this.hoveredHex) {
+                    this.updateHexHovered(h.hex);
                 }
                 break;
             }
@@ -216,7 +211,7 @@ class HexSceneManager {
             this.removeHexHovered();
         }
         this.hoveredHex = detectedHex;
-        if(!cube_matches(getByValue(this.hexMapRanges, this.hoveredHex), new Cube(0,0,0))) {
+        if(!cube_matches(getKeyByNestedValue(this.hexMapRanges, this.hoveredHex, 'hex'), this.centerHex.cube)) {
             this.hoveredHex.renderer.sprite = this.hexagonYellow;
         }
 
@@ -231,8 +226,9 @@ class HexSceneManager {
         let directionFromCenterToTarget = cube_direction(hexSource.cube, this.centerHex.cube);
 
         targetPattern.forEach(p => {
+            let dice = p.dice;
             if(p.source.includes("SOURCE")) {
-                this.hexMapTargets.set(hexSource.cube, hexSource);
+                this.hexMapTargets.set(hexSource.cube, {hex: hexSource, dice: dice});
                 return;
             }
 
@@ -248,19 +244,49 @@ class HexSceneManager {
             });
 
             let hexTarget = getByKey(this.hexMap, cube);
-            this.hexMapTargets.set(cube, hexTarget);
+            this.hexMapTargets.set(cube, {hex: hexTarget, dice:dice});
         })
 
         this.hexMapTargets.forEach((h,c) => {
-            h.renderer.sprite = this.hexagonRed;
+            h.hex.renderer.sprite = this.hexagonRed;
         })
     }
 
     removeHexHovered() {
-        if(!cube_matches(getByValue(this.hexMapRanges, this.hoveredHex), new Cube(0,0,0))) {
+        if(!cube_matches(getKeyByNestedValue(this.hexMapRanges, this.hoveredHex, 'hex'), this.centerHex.cube)) {
             this.hoveredHex.renderer.sprite = this.hexagonWhite;
         }
 
         this.loadForOrientation();
+    }
+
+    drawText(ctx) {
+        ctx.font = "14px Arial";
+        ctx.fillStyle = "black";
+        ctx.textAlign = "center";
+        this.hexMapTargets.forEach((h, c) => {
+
+            let dice;
+
+            dice = h.dice ? h.dice : 
+            getByKey(this.hexMapRanges, c) ? getByKey(this.hexMapRanges,c).dice : null ;
+
+            if(dice) {
+                ctx.fillText(dice, h.hex.transform.position.x, h.hex.transform.position.y + 7);
+            }
+        });
+
+        ctx.font = "12px Arial";
+        ctx.fillStyle = "grey";
+        ctx.textAlign = "center";
+        this.hexMapRanges.forEach((h, c) => {
+            if(getByKey(this.hexMapTargets, c)) {
+                return;
+            }
+
+            if(h.dice) {
+                ctx.fillText(h.dice, h.hex.transform.position.x, h.hex.transform.position.y + 6);
+            }
+        });
     }
 }

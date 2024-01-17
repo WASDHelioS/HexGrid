@@ -138,6 +138,7 @@ class SelectMenuMainScene extends Scene {
 
                 scene.originBtn.selected = false;
                 scene.originBtn.renderer.subImage = 0;
+                this.collapse(this.buttonGroups.find(bg => bg.name == "collapse").buttons[0]);
                 this.parentScene.load();
                 scene.destroy();
             };
@@ -268,6 +269,7 @@ class SelectMenuMainScene extends Scene {
 
     addCollapseButton() {
         let buttonGroup = new ButtonGroup();
+        buttonGroup.name="collapse";
 
         let collapseButton = new Button(0,0, this.game.images.buttonLeft);
         collapseButton.transform.scale = new vector(.6,.6);
@@ -279,17 +281,19 @@ class SelectMenuMainScene extends Scene {
 
         collapseButton.clicked = (btn) => {
 
-            this.createTween(this.determineVector() ,800, null, this).start();
-
-            this.flipCollapseButton(btn);
-            this.collapsed = this.toggle(this.collapsed);
-            this.getChildScenes().forEach(scene => scene.close());
-            console.log(this.collapsed);
+            this.collapse(btn);
         }
 
         this.addObject(collapseButton);
         buttonGroup.addButton(collapseButton);
         this.buttonGroups.push(buttonGroup);
+    }
+
+    collapse(btn) {
+        this.createTween(this.determineVector() ,800, null, this).start();
+        this.flipCollapseButton(btn);
+        this.collapsed = this.toggle(this.collapsed);
+        this.getChildScenes().forEach(scene => scene.close());
     }
 
     toggle(bool) {

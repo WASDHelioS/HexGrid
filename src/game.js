@@ -57,8 +57,16 @@ createMainScene = function (game)
 
 function getByValue(map, searchValue) {
     for (let [key, value] of map.entries()) {
-        if (value === searchValue)
+        if (value && value === searchValue)
             return key;
+    }
+}
+
+function getKeyByNestedValue(map, searchValue, prop) {
+    for(let [key,value] of map.entries()) {
+        if(value[prop] && value[prop] === searchValue) {
+            return key;
+        }
     }
 }
 
@@ -69,7 +77,6 @@ function getByKey(map, searchValue) {
         }
     }
 }
-
 
 function onCreateSummoner() {
     let newSummoner = {};
@@ -199,15 +206,12 @@ function readAndApplyQueryParams() {
     queryParamsMap.forEach(strArr => {
         switch(strArr[0]){
             case "summoner":
-                console.log("setting summoner")
                 currentSummoner = summoners.find(summ => summ.id == strArr[1]);
                 return;
             case "summon":
-                console.log("setting summon")
                 currentSummon = currentSummoner.summons.find(summ => summ.id == strArr[1]);
                 return;
             case "action":
-                console.log("setting action")
                 currentAction = currentSummon.actions.find(act => act.id == strArr[1]);
                 return;
         }

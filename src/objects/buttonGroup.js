@@ -2,6 +2,7 @@ class ButtonGroup {
 
     buttons = [];
     selectedInGroup;
+    name;
 
     addButton(button) {
         this.buttons.push(button);

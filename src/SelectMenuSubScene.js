@@ -99,7 +99,6 @@ class SelectMenuSubScene extends SelectMenuMainScene {
                 this.src.push(createdObj);
                 this.refresh(this.src, this.level);
                 scene.destroy();
-
             };
 
             this.loadChildScene(scene);
