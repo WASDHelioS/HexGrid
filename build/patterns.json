@@ -1,172 +1,347 @@
 {
     "summoners": [
         {
-            "id":1,
-            "name":"SummonerGuy",
+            "id": 1,
+            "name": "SummonerGuy",
             "summons": [
                 {
-                "id":1,
-                "name":"swordGuy",
-                    "actions": [{
-                        "id":1,
-                        "name":"RangedAoE",
-                        "distanceMin":4,
-                        "distanceMax":6,
-                        "rangeOfVision":"CONE",
-                        "diagonalVision":"IN",
-                        "pattern": [
-                            {
-                                "source":["SOURCE"]
-                            },
-                            {
-                                "source":["NW"]
-                            },
-                            {
-                                "source":["N"]
-                            },
-                            {
-                                "source":["NE"]
-                            },
-                            {
-                                "source":["NW","N"]
-                            },
-                            {
-                                "source":["N", "N"]
-                            },
-                            {
-                                "source":["NE","N"]
-                            }
-                        ]
-                    }, 
-                    {
-                        "id":2,
-                        "name":"Pierce",
-                        "distanceMin":1,
-                        "distanceMax":1,
-                        "rangeOfVision":"CONE",
-                        "diagonalVision":"NONE",
-                        "pattern": [
-                            {
-                                "source":["SOURCE"]
-                            },
-                            {
-                                "source":["N"]
-                            }
-                        ]
-                    },
-                    {
-                        "id":3,
-                        "name":"Slice",
-                        "distanceMin":1,
-                        "distanceMax":1,
-                        "rangeOfVision":"STRAIGHT",
-                        "diagonalVision":"NONE",
-                        "pattern": [
-                            {
-                                "source":["SOURCE"]
-                            },
-                            {
-                                "source":["SW"]
-                            },
-                            {
-                                "source":["SE"]
-                            }
-                        ]
-                    },
-                    {
-                        "id":4,
-                        "name":"Stab",
-                        "distanceMin":1,
-                        "distanceMax":1,
-                        "rangeOfVision":"CONE",
-                        "diagonalVision":"NONE",
-                        "pattern": [
-                            {
-                                "source":["SOURCE"]
-                            }
-                        ]
-                    },
-                    {
-                        "id":5,
-                        "name":"Whirlwind",
-                        "distanceMin":1,
-                        "distanceMax":1,
-                        "rangeOfVision":"STRAIGHT",
-                        "diagonalVision":"NONE",
-                        "pattern": [
-                            {
-                                "source":["SOURCE"]
-                            },
-                            {
-                                "source":["SE"]
-                            },
-                            {
-                                "source":["SE","S"]
-                            },
-                            {
-                                "source":["SE","S","SW"]
-                            },
-                            {
-                                "source":["SW"]
-                            },
-                            {
-                                "source":["SW","S"]
-                            }
-                        ]
-                    },
-                    {
-                        "id":6,
-                        "name":"Upheave",
-                        "distanceMin":1,
-                        "distanceMax":1,
-                        "rangeOfVision":"STRAIGHT",
-                        "diagonalVision":"NONE",
-                        "pattern": [
-                            {
-                                "source":["SOURCE"]
-                            },
-                            {
-                                "source":["S","S"]
-                            }
-                        ]
-                    }
-                ]
-                },
-                {
-                    "id":2,
-                    "name":"SpearGuy",
-                        "actions": [{
-                            "id":1,
-                            "name":"Pierce",
-                            "distanceMin":1,
-                            "distanceMax":1,
-                            "rangeOfVision":"CONE",
-                            "diagonalVision":"NONE",
-                            "pattern": [
+                    "id": 1,
+                    "name": "swordGuy",
+                    "actions": [
+                        {
+                            "id": 1,
+                            "name": "RangedAoE",
+                            "rangePattern": [
                                 {
-                                    "source":["SOURCE"]
+                                    "source": [
+                                        "N",
+                                        "N"
+                                    ]
                                 },
                                 {
-                                    "source":["N"]
+                                    "source": [
+                                        "N",
+                                        "NE"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "N",
+                                        "NW"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "NE",
+                                        "NE"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "NW",
+                                        "NW"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "N",
+                                        "N",
+                                        "N"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "N",
+                                        "N",
+                                        "NE"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "N",
+                                        "N",
+                                        "NW"
+                                    ]
+                                }
+                            ],
+                            "targetPattern": [
+                                {
+                                    "source": [
+                                        "SOURCE"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "NW"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "N"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "NE"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "NW",
+                                        "N"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "N",
+                                        "N"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "NE",
+                                        "N"
+                                    ]
                                 }
                             ]
                         },
                         {
-                            "id":2,
-                            "name":"Poke",
-                            "distanceMin":2,
-                            "distanceMax":2,
-                            "rangeOfVision":"CONE",
-                            "diagonalVision":"IN",
-                            "pattern": [
+                            "id": 2,
+                            "name": "Slice",
+                            "rangePattern": [
                                 {
-                                    "source":["SOURCE"]
+                                    "source": [
+                                        "N"
+                                    ]
+                                }
+                            ],
+                            "targetPattern": [
+                                {
+                                    "source": [
+                                        "SOURCE"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "SW"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "SE"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "id": 3,
+                            "name": "Stab",
+                            "rangePattern": [
+                                {
+                                    "source": [
+                                        "N"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "NE"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "NW"
+                                    ]
+                                }
+                            ],
+                            "targetPattern": [
+                                {
+                                    "source": [
+                                        "SOURCE"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "id": 4,
+                            "name": "Whirlwind",
+                            "rangePattern": [
+                                {
+                                    "source": [
+                                        "N"
+                                    ]
+                                }
+                            ],
+                            "targetPattern": [
+                                {
+                                    "source": [
+                                        "SOURCE"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "SE"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "SE",
+                                        "S"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "SE",
+                                        "S",
+                                        "SW"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "SW"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "SW",
+                                        "S"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "id": 5,
+                            "name": "Upheave",
+                            "rangePattern": [
+                                {
+                                    "source": [
+                                        "N"
+                                    ]
+                                }
+                            ],
+                            "targetPattern": [
+                                {
+                                    "source": [
+                                        "SOURCE"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "S",
+                                        "S"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": 2,
+                    "name": "SpearGuy",
+                    "actions": [
+                        {
+                            "id": 1,
+                            "name": "Pierce",
+                            "rangePattern": [
+                                {
+                                    "source": [
+                                        "N"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "NE"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "NW"
+                                    ]
+                                }
+                            ],
+                            "targetPattern": [
+                                {
+                                    "source": [
+                                        "SOURCE"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "N"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "id": 2,
+                            "name": "Poke",
+                            "rangePattern": [
+                                {
+                                    "source": [
+                                        "N",
+                                        "N"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "NE",
+                                        "NE"
+                                    ]
+                                },
+                                {
+                                    "source": [
+                                        "NW",
+                                        "NW"
+                                    ]
+                                }
+                            ],
+                            "targetPattern": [
+                                {
+                                    "source": [
+                                        "SOURCE"
+                                    ]
                                 }
                             ]
                         }
                     ]
                 }
             ]
+        },
+        {
+            "id": 2,
+            "summons": [
+                {
+                    "id": 1,
+                    "actions": [
+                        {
+                            "id": 1,
+                            "name": "Pinch",
+                            "rangePattern": [
+                                {
+                                    "source":["NW"]
+                                },
+                                {
+                                    "source":["NE"]
+                                },
+                                {
+                                    "source":["SW"]
+                                },
+                                {
+                                    "source":["SE"]
+                                }
+                            ],
+                            "targetPattern": [
+                                {
+                                    "source": [
+                                        "SOURCE"
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "name": "Crab"
+                }
+            ],
+            "name": "CrabSummoner"
         }
     ]
 }

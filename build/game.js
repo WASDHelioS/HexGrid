@@ -196,7 +196,8 @@ function onDeleteAction() {
 
 function toJson() {
     let newTab = window.open();
-    newTab.document.write("<html><body><pre>" +  JSON.stringify(summoners, null, 4) + "</pre></body></html>");
+    let fullschema = {summoners: summoners}
+    newTab.document.write("<html><body><pre>" +  JSON.stringify(fullschema, null, 4) + "</pre></body></html>");
     newTab.document.close();
 }
 
@@ -336,7 +337,7 @@ class HexSceneManager {
 
     hexMap = new Map();
 
-    hexMapValidTargets = new Map();
+    hexMapRanges = new Map();
     hexMapTargets = new Map();
 
     hexagonRed;
@@ -370,7 +371,7 @@ class HexSceneManager {
         }
 
         this.hoveredHex = null;
-        this.hexMapValidTargets.clear();
+        this.hexMapRanges.clear();
         this.hexMapTargets.clear();
         this.greyOut();
 
@@ -475,68 +476,31 @@ class HexSceneManager {
 
     // Reads json and for a given rangeOfVision, marks hexes in those directions (& potentially diagonals)
     addValidHexes() {
-        let maxDistance = currentAction.distanceMax;
-        let minDistance = currentAction.distanceMin;
-        if(!minDistance) {
-            minDistance = 0;
-        }
-        if(!maxDistance) {
-            maxDistance = 10;
-        }
+        let rangePattern = currentAction.rangePattern;
+        rangePattern.forEach(p => {
 
-        let directions = range_of_vision[currentAction.rangeOfVision];
+            let translatedSource = p.source.map(d=> {
 
-        let diagonal = currentAction.diagonalVision;
+                let direction = CubeDirection[d];
+                return direction_translate_to_offset_from_north(direction, this.centerHex.direction);
+            });
 
-        directions.forEach(dir => {
+            let cube = this.centerHex.cube;
+            translatedSource.forEach(d => {
+                cube = cube_neighbor(cube, d);
+            });
 
-            let direction = CubeDirection[dir];
-            let rotatedDirection = direction_translate_to_offset_from_north(direction, this.centerHex.direction);
+            let hexTarget = getByKey(this.hexMap, cube);
+            this.hexMapRanges.set(cube, hexTarget);
+        })
 
-            for(let i = minDistance; i <= maxDistance; i++) {
-                let hex = this.traverse(this.centerHex, rotatedDirection, i);
-
-                this.hexMapValidTargets.set(hex.cube, hex);
-
-                if(diagonal && diagonal == 'OUT') {
-                    for(let j = 1; j < i; j++) {
-
-                        let hexLeft = this.traverse(hex,direction_left(direction_left(rotatedDirection)), j);
-                        let hexRight = this.traverse(hex, direction_right(direction_right(rotatedDirection)), j);
-
-                        this.hexMapValidTargets.set(hexLeft.cube, hexLeft);
-                        this.hexMapValidTargets.set(hexRight.cube, hexRight);
-                    }
-                }
-
-                if(diagonal && diagonal == 'IN') {
-                    for(let j = 1; j < i; j++) {
-                        if(direction.name.includes('W')) {
-                            let hexRight = this.traverse(hex, direction_right(direction_right(rotatedDirection)), j);
-                            this.hexMapValidTargets.set(hexRight.cube, hexRight);
-                        } else if(direction.name.includes('E')) {
-                            let hexLeft = this.traverse(hex,direction_left(direction_left(rotatedDirection)), j);
-                            this.hexMapValidTargets.set(hexLeft.cube, hexLeft);
-                        }
-                    }
-                }
-            }
+        this.hexMapRanges.forEach((h,c) => {
+            h.renderer.sprite = this.hexagonWhite;
         })
     }
 
-    //Moves from one hex, into a direction for a given amount of steps. returns destination hex
-    traverse(hex, direction, steps) {
-        let cube = hex.cube;
-
-        for(let i = 0; i < steps; i++) {
-            cube = cube_neighbor(cube, direction);
-        }
-
-        return getByKey(this.hexMap, cube);
-    }
-
     colorValidHexes() {
-        this.hexMapValidTargets.forEach((hex,cube) => {
+        this.hexMapRanges.forEach((hex,cube) => {
             
             if(!cube_matches(hex.cube, new Cube(0,0,0))) {
                 hex.renderer.sprite = this.hexagonWhite;
@@ -550,13 +514,13 @@ class HexSceneManager {
     updateIfHovered(mousePos) {
     let found = null;
 
-        for(let [k,h] of this.hexMapValidTargets) {
+        for(let [k,h] of this.hexMapRanges) {
             if(this.isWithin(mousePos, h.transform.position,h.radius)) {
                 found = true;
                 if(h !== this.hoveredHex) {
                     this.updateHexHovered(h);
                         cube_distance(
-                            getByValue(this.hexMapValidTargets, h),
+                            getByValue(this.hexMapRanges, h),
                             new Cube(0,0,0)
                     );
                 }
@@ -582,7 +546,7 @@ class HexSceneManager {
             this.removeHexHovered();
         }
         this.hoveredHex = detectedHex;
-        if(!cube_matches(getByValue(this.hexMapValidTargets, this.hoveredHex), new Cube(0,0,0))) {
+        if(!cube_matches(getByValue(this.hexMapRanges, this.hoveredHex), new Cube(0,0,0))) {
             this.hoveredHex.renderer.sprite = this.hexagonYellow;
         }
 
@@ -593,10 +557,10 @@ class HexSceneManager {
 
     //Checks the json action pattern to map out the target hexes at the current hex (hovered)
     updateTargetHexes(hexSource) {
-        let pattern = currentAction.pattern;
+        let targetPattern = currentAction.targetPattern;
         let directionFromCenterToTarget = cube_direction(hexSource.cube, this.centerHex.cube);
 
-        pattern.forEach(p => {
+        targetPattern.forEach(p => {
             if(p.source.includes("SOURCE")) {
                 this.hexMapTargets.set(hexSource.cube, hexSource);
                 return;
@@ -623,7 +587,7 @@ class HexSceneManager {
     }
 
     removeHexHovered() {
-        if(!cube_matches(getByValue(this.hexMapValidTargets, this.hoveredHex), new Cube(0,0,0))) {
+        if(!cube_matches(getByValue(this.hexMapRanges, this.hoveredHex), new Cube(0,0,0))) {
             this.hoveredHex.renderer.sprite = this.hexagonWhite;
         }
 

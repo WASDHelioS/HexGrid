@@ -164,7 +164,8 @@ function onDeleteAction() {
 
 function toJson() {
     let newTab = window.open();
-    newTab.document.write("<html><body><pre>" +  JSON.stringify(summoners, null, 4) + "</pre></body></html>");
+    let fullschema = {summoners: summoners}
+    newTab.document.write("<html><body><pre>" +  JSON.stringify(fullschema, null, 4) + "</pre></body></html>");
     newTab.document.close();
 }
 
