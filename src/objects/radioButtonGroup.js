@@ -1,8 +1,8 @@
-class ButtonGroup {
+class RadioButtonGroup extends ButtonGroup {
 
-    buttons = [];
-    selectedInGroup;
-    name;
+    constructor() {
+        super()
+    }
 
     findByName(buttonName) {
         return this.buttons.find(button => button.name == buttonName);
@@ -10,9 +10,6 @@ class ButtonGroup {
 
     addButton(button) {
         this.buttons.push(button);
-        if(!button.selectable) {
-            button.renderer.subImage = 4;
-        }
     }
 
     hover(mousePos) {
@@ -20,25 +17,10 @@ class ButtonGroup {
             if(button.selected) {
                 return;
             }
-
-            if(!button.selectable) {
-                button.renderer.subImage = 4;
-                return;
-            }
-
-            if(this.isWithin(mousePos, button)) {
-                button.renderer.subImage = 1;
-            } else {
-                button.renderer.subImage = 0;
-                
-            }
         });
     }
 
     held(btn) {
-        if(btn.isClicked) {
-            btn.renderer.subImage = 2;
-        }
     }
 
     isWithin(mousePos, button) {
@@ -50,15 +32,11 @@ class ButtonGroup {
 
     manageSelect(btn) {
         this.buttons.forEach(button => {
-            if(button === btn && button.selectable) {
-                button.renderer.subImage = 3;
-                button.selected = true;
+            if(button === btn) {
+                button.renderer.sprite = game.images.radioOn;
                 this.selectedInGroup = button;
             } else {
-                if(button.selectable) {
-                    button.renderer.subImage = 0;
-                    button.selected = false;
-                }
+                button.renderer.sprite = game.images.radioOff;
             }
         });
     }

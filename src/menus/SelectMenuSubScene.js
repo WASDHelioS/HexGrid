@@ -77,7 +77,6 @@ class SelectMenuSubScene extends SelectMenuMainScene {
         btnGroup.addButton(btn);
         this.addObject(btn);
         this.buttonGroups.push(btnGroup);
-
     }
 
     addCreateButton() {
@@ -138,6 +137,7 @@ class SelectMenuSubScene extends SelectMenuMainScene {
         this.buttonGroups.push(btnGroup);
     }
 
-
+    onUpdateSelected(selected) {
+    }
 
 }

@@ -11,6 +11,7 @@ class SelectMenuMainScene extends Scene {
 
     buttonGroups = [];
     collapsed = false;
+    activeButton;
 
     constructor(x,y,dx,dy,width,height) {
         super(x,y,width,height,Scene.DisplayModes.absolute);
@@ -39,14 +40,14 @@ class SelectMenuMainScene extends Scene {
         summonerButton.textSize = 14;
         
         summonButton.transform.scale = new vector(0.8, 1);
-        if(!currentSummoner) {
+        if(!currentSummoner.get()) {
             summonButton.selectable = false;
         }
         summonButton.setName("Summons");
         summonButton.textSize = 14;
 
         actionButton.transform.scale = new vector(0.8, 1);
-        if(!currentSummon) {
+        if(!currentSummon.get()) {
             actionButton.selectable = false;
         }
         actionButton.setName("Actions");
@@ -64,27 +65,13 @@ class SelectMenuMainScene extends Scene {
 
         summonerButton.clicked = (btn) => { 
             this.clearChildScenes();
+            this.activeButton = btn;
             let scene = new SelectMenuSubScene(225, 100, null,null, 450 ,250, btn);
 
             scene.callBack = (scene) => {
-
-                currentSummoner = scene.selected;
-
-                updateQueryParams("summoner="+currentSummoner.id);
-                currentSummon = null;
-                currentAction = null;
-
-                scene.originBtn.selected = false;
-                scene.originBtn.renderer.subImage = 0;
-                this.parentScene.load();
-                scene.destroy();
-
-                summonButton.selectable = true;
-                summonButton.renderer.subImage = 0;
-
-                actionButton.selectable = false;
-                actionButton.renderer.subImage = 4;
-
+                currentAction.set(null);
+                currentSummon.set(null);
+                currentSummoner.set(scene.selected);
             };
 
             this.loadChildScene(scene);
@@ -98,28 +85,16 @@ class SelectMenuMainScene extends Scene {
 
         summonButton.clicked = (btn) => { 
             this.clearChildScenes(); 
+            this.activeButton = btn;
             let scene = new SelectMenuSubScene(225, 100,null,null, 450 ,250, btn);
 
             scene.callBack = (scene) => {
-
-                currentSummon = scene.selected;
-
-                updateQueryParams("summoner="+currentSummoner.id + "&summon="+currentSummon.id);
-
-                currentAction = null;
-
-                scene.originBtn.selected = false;
-                scene.originBtn.renderer.subImage = 0;
-                this.parentScene.load();
-                scene.destroy();
-
-                actionButton.selectable = true;
-                actionButton.renderer.subImage = 0;
-
+                currentAction.set(null);
+                currentSummon.set(scene.selected);
             };
 
             this.loadChildScene(scene);
-            scene.init(currentSummoner.summons, "summon");
+            scene.init(currentSummoner.get().summons, "summon");
             buttonGroup.manageSelect(btn);
         };
 
@@ -129,22 +104,15 @@ class SelectMenuMainScene extends Scene {
 
         actionButton.clicked = (btn) => { 
             this.clearChildScenes(); 
+            this.activeButton = btn;
             let scene = new SelectMenuSubScene(225, 100,null,null, 450 ,250, btn);
 
             scene.callBack = (scene) => {
-
-                currentAction = scene.selected;
-                updateQueryParams("summoner="+currentSummoner.id + "&summon="+currentSummon.id+"&action="+currentAction.id);
-
-                scene.originBtn.selected = false;
-                scene.originBtn.renderer.subImage = 0;
-                this.collapse(this.buttonGroups.find(bg => bg.name == "collapse").buttons[0]);
-                this.parentScene.load();
-                scene.destroy();
+                currentAction.set(scene.selected);
             };
 
             this.loadChildScene(scene);
-            scene.init(currentSummon.actions, "action");
+            scene.init(currentSummon.get().actions, "action");
             buttonGroup.manageSelect(btn); 
         };
 
@@ -228,9 +196,7 @@ class SelectMenuMainScene extends Scene {
 
         let translatedMousePos = new vector(GameInput.mousePosition.x - this.position.x, GameInput.mousePosition.y-this.position.y);
 
-
-
-        if(translatedMousePos.x < -100 || translatedMousePos.y < -100 || translatedMousePos.x > this.width + 100 || translatedMousePos.y > this.height + 100) {
+        if(translatedMousePos.x < -100 || translatedMousePos.y < -100 || translatedMousePos.x > this.size.x + 100 || translatedMousePos.y > this.size.y + 100) {
             return;
         }
 
@@ -332,5 +298,37 @@ class SelectMenuMainScene extends Scene {
             this.activeTween.stop();
         }
         this.activeTween = tween;
+    }
+
+    onUpdateSelected(selected) {
+        if(this.activeButton) {
+            this.activeButton.selected = false;
+            this.activeButton.renderer.subImage = 0;
+            this.activeButton = null;
+        }
+
+        if(selected.level == 'summoner') {
+            let summonButton = this.buttonGroups[0].findByName('Summons');
+            let actionButton = this.buttonGroups[0].findByName('Actions');
+
+            summonButton.selectable = true;
+            summonButton.renderer.subImage = 0;
+
+            actionButton.selectable = false;
+            actionButton.renderer.subImage = 4;
+        } else if(selected.level == 'summon') {
+            let actionButton = this.buttonGroups[0].findByName('Actions');
+
+            actionButton.selectable = true;
+            actionButton.renderer.subImage = 0;
+        } else {
+            this.collapse(this.buttonGroups.find(bg => bg.name == "collapse").buttons[0]);
+        }
+
+        this.clearChildScenes();
+    }
+
+    onUpdateState(st) {
+
     }
 }

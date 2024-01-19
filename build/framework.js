@@ -863,7 +863,6 @@ class Scene
     clearChildScenes() {
         this.game.activeScenes.forEach(scene => {
             if(scene.parentScene === this) {
-                console.log(this);
                 scene.destroy();
             }
         })
@@ -1000,6 +999,19 @@ class Scene
             if (!this.activeObjects[i].destroyed && this.activeObjects[i].renderer.visible)
                 this.activeObjects[i].draw(this.context);
         }
+    }
+
+    getRelativeMousePos() {
+        let mousePos = new vector(GameInput.mousePosition.x, GameInput.mousePosition.y);
+        mousePos.x -= this.real_position.x;
+        mousePos.y -= this.real_position.y;
+        return mousePos;
+    }
+
+    isWithin() {
+        let mousePos = this.getRelativeMousePos();
+
+        return mousePos.x > 0 && mousePos.y > 0 && mousePos.x < this.size.x && mousePos.y < this.size.y;
     }
 }
 /*
@@ -1829,6 +1841,8 @@ var GameInput =
 	trueMousePosition: null,
 	mousePosition: null,
 
+    firstTouch:null,
+
 	MouseButtons: {
 		Left: 0,
 		Middle: 1,
@@ -1883,12 +1897,90 @@ var GameInput =
 			GameInput.trueMousePosition.y = e.y;
 		};
 
-		var el = document.getElementsByTagName("body")[0];
-		el.addEventListener("touchstart", function () { GameInput.g_mouseDownThisFrame = true; }, false);
-		el.addEventListener("touchend", function () { GameInput.g_mouseDownThisFrame = false; GameInput.g_mouseDown = false; }, false);
-		el.addEventListener("touchcancel", function () { GameInput.g_mouseDownThisFrame = false; GameInput.g_mouseDown = false; }, false);
-		el.addEventListener("touchmove", function () { return false; }, false);
+		var el = document.body;
+		el.addEventListener("touchstart", (e) => this.onTouchStart(e), false);
+		el.addEventListener("touchend", (e) => this.onTouchEnd(e) , false);
+		el.addEventListener("touchcancel", (e) => this.onTouchEnd(e), false);
+		el.addEventListener("touchmove", (e) => this.onTouchMove(e), false);
 	},
+
+    onTouchStart: function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var list = e.changedTouches;
+
+        if(this.firstTouch) {
+            return;
+        }
+        if(list.length == 1) {
+            this.firstTouch = {x: list[0].clientX, y: list[0].clientY, id: list[0].identifier};
+            GameInput.g_mouseDownThisFrame = true;
+            
+            if (!GameInput.trueMousePosition)
+				GameInput.trueMousePosition = new vector();
+
+			GameInput.trueMousePosition.x = this.firstTouch.x;
+			GameInput.trueMousePosition.y = this.firstTouch.y;
+        }
+    },
+
+    onTouchMove: function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var list = e.changedTouches;
+
+        if(!this.firstTouch) {
+            return;
+        }
+
+        let changedTouch;
+
+        for(let i = 0; i < list.length; i++) {
+            if(list[i].identifier == this.firstTouch.id) {
+                changedTouch = list[i];
+            }
+        }
+
+        if(!changedTouch) {
+            return;
+        }
+        this.firstTouch.x = changedTouch.clientX;
+        this.firstTouch.y = changedTouch.clientY;
+        GameInput.trueMousePosition.x = this.firstTouch.x;
+        GameInput.trueMousePosition.y = this.firstTouch.y;
+
+    },
+
+    onTouchEnd: function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var list = e.changedTouches;
+
+        if(!this.firstTouch) {
+            return;
+        }
+
+        let changedTouch; 
+
+        for(let i = 0; i < list.length; i++) {
+            if(list[i].identifier == this.firstTouch.id) {
+                changedTouch = list[i];
+            }
+        }
+
+        if(!changedTouch) {
+            return;
+        }
+
+        GameInput.g_mouseDownThisFrame = false;
+        GameInput.g_mouseDown = false;
+        GameInput.trueMousePosition.x = this.firstTouch.x;
+        GameInput.trueMousePosition.y = this.firstTouch.y;
+
+        this.firstTouch = null;
+
+
+    },
 
 	g_setKeyStatus: function (e)
 	{
@@ -2376,11 +2468,11 @@ class Signal
 {
     listeners = [];
 
-    dispatch ()
+    dispatch (...args)
     {
         for (var i = 0; i < this.listeners.length; i++)
         {
-            this.listeners[i].callback.call(this.listeners[i].context);
+            this.listeners[i].callback.call(this.listeners[i].context, args);
         }
 
         for (var i = this.listeners.length - 1; i > 0; i--)

@@ -109,4 +109,8 @@ class CreateScene extends SelectMenuMainScene {
 
         ctx.fillText("Create a " + this.level, 20,20);
     }
+
+    onUpdateSelected(selected) {
+        this.destroy();
+    }
 }

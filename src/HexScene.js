@@ -24,12 +24,12 @@ class HexScene extends Scene
         this.hexSceneManager = new HexSceneManager(this);
     }
 
-    init() {
-        this.hexSceneManager.init();
+    init(state, selected) {
+        this.hexSceneManager.init(state, selected);
     }
 
-    load() {
-        this.hexSceneManager.loadForOrientation();
+    load(state, selected) {
+        this.hexSceneManager.reload(state, selected);
     }
 
     update (deltaTime)
@@ -50,11 +50,46 @@ class HexScene extends Scene
             return;
         }
 
-        let mousePos = new vector(GameInput.mousePosition.x, GameInput.mousePosition.y);
-        mousePos.x -= this.x;
-        mousePos.y -= this.y;
+        let isWithinScene = this.game.activeScenes.filter(scene => scene !== this).find(scene => scene.isWithin());
+        if(isWithinScene) {
+            this.hexSceneManager.updateIfHovered(null);
+            return;
+        }
+
+        let mousePos = this.getRelativeMousePos();
 
         this.hexSceneManager.updateIfHovered(mousePos);
+
+        let btn = GameInput.mousePressed();
+        if(btn && btn.left) {
+            this.hexSceneManager.updateIfClicked(mousePos);
+        }
     }
 
+    onUpdateSelected(selected) {
+        this.load(state.state, selected)
+        if(selected.level == 'summoner') {
+            let editScene = game.activeScenes.find(s => s instanceof EditMenuMainScene);
+            if(editScene) {
+                editScene.hide();
+            }
+        }
+
+        else {
+            let editScene = game.activeScenes.find(s => s instanceof EditMenuMainScene);
+            if(!editScene) {
+                editScene = new EditMenuMainScene(this.width - 200 + this.x, 100, this.width - 25,100, 200, 200, this.width + this.x, this.height + this.y);
+                this.loadChildScene(editScene);
+                editScene.init(selected);
+            } else {
+                editScene.show();
+            }
+            //after modify buttons depending on level (let the scene handle that) (so we can update the existing scene too)
+        }
+    }
+
+    onUpdateState(st) {
+        this.load(st, state.selected);
+
+    }
 }

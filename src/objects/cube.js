@@ -59,6 +59,16 @@ direction_translate_to_offset_from_north = function(cubeDirection, referenceDire
     return newDirection;
 }
 
+cube_neighbors = function(cube) {
+    return [cube_neighbor(cube,CubeDirection.N), 
+            cube_neighbor(cube,CubeDirection.NE),
+            cube_neighbor(cube,CubeDirection.SE),
+            cube_neighbor(cube,CubeDirection.S),
+            cube_neighbor(cube,CubeDirection.SW),
+            cube_neighbor(cube,CubeDirection.NW)]
+            .filter(c => c != null);
+}
+
 cube_neighbor = function(cube, direction) {
     return cube_add(cube, cube_direction_vectors[direction.ordinal]);
 }
@@ -82,8 +92,12 @@ cube_distance = function(c1, c2) {
     return (Math.abs(dif.q) + Math.abs(dif.r) + Math.abs(dif.s)) / 2;
 }
 
+pos_distance = function(v1, v2) {
+    return    v1.distanceTo(v2);
+}
+
 cube_direction = function(c1, c2) {
-    let vec = cube_add(c1, c2);
+    let vec = cube_subtract(c1, c2);
     let norm = Math.sqrt(vec.q * vec.q + vec.r * vec.r + vec.s * vec.s);
     if(norm != null) {
         let dir = new Cube (Math.round(vec.q / norm), Math.round(vec.r / norm), Math.round(vec.s / norm))

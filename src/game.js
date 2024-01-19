@@ -1,14 +1,65 @@
 var game = new Game();
+
+var state;
+
 var summoners;
-var currentSummoner;
-var currentSummon;
-var currentAction;
+var currentSummoner = {
+    cs: null,
+    signal: new Signal(),
+    get: function() {
+        return this.cs;
+    },
+    set: function(cs) {
+        shouldDispatch = cs !== null
+        this.cs = cs;
+        if(shouldDispatch) this.signal.dispatch(this.cs);
+    }
+};
+var currentSummon = {
+    cs: null,
+    signal: new Signal(),
+    get: function() {
+        return this.cs;
+    },
+    set: function(cs) {
+        shouldDispatch = cs !== null
+        this.cs = cs;
+        if(shouldDispatch) this.signal.dispatch(this.cs);
+    }
+};
+var currentAction = {
+    ca: null,
+    signal: new Signal(),
+    get: function() {
+        return this.ca;
+    },
+    set: function(ca) {
+        shouldDispatch = ca !== null
+        this.ca = ca;
+        if(shouldDispatch) this.signal.dispatch(this.ca);
+    }
+};
+var currentState = {
+    cs: null,
+    signal: new Signal(),
+    get: function() {
+        return this.cs;
+    },
+    set: function(cs) {
+        shouldDispatch = cs !== null
+        this.cs = cs;
+        if(shouldDispatch) this.signal.dispatch(this.cs);
+    }
+};
 
 var scene;
 
+document.ondblclick = function(e) {
+    e.preventDefault();
+}
+
 window.onload = function ()
 {
-
     this.game.preloadImagesThenStart(
         [
             { name: "hexagon", url: "images/hexagon.png" },
@@ -17,19 +68,26 @@ window.onload = function ()
             { name: "hexagonRed", url: "images/hexagonRed.png" },
             { name: "hexagonOrange", url: "images/hexagonOrange.png" },
             { name: "hexagonYellow", url: "images/hexagonYellow.png" },
+            { name: "hexagonDarkYellow", url: "images/hexagonDarkYellow.png"},
 
             { name: "button", url: "images/buttons.png", subImgTotal: 5, perRow: 1},
             { name: "buttonX", url: "images/buttonsX.png", subImgTotal: 3, perRow: 1},
             { name: "buttonLeft", url: "images/buttonsLeft.png", subImgTotal: 3, perRow: 1},
             { name: "buttonRight", url: "images/buttonsRight.png", subImgTotal: 3, perRow: 1},
+            { name: "radioOn", url: "images/radioOn.png"},
+            { name: "radioOff", url: "images/radioOff.png"},
 
             { name: "input", url: "images/input.png"},
         ]
         , function ()
         {
             this.preloadJsonThenStart("./patterns.json", function() {
+                state = new StateManager();
 
-                readAndApplyQueryParams();
+                currentSummoner.signal.add((summoner) => { state.updateState("VIEW"); state.updateSelected('summoner', summoner[0]); }, state);
+                currentSummon.signal.add((summon) => { state.updateState("VIEW"); state.updateSelected('summon', summon[0]); }, state);
+                currentAction.signal.add((action) => { state.updateState("VIEW"); state.updateSelected('action', action[0]); }, state);
+                currentState.signal.add((s) => { state.updateState(s[0]);}, state);
 
                 this.createMainScene(game);
             })
@@ -42,15 +100,18 @@ createMainScene = function (game)
 
     this.game.loadScene(scene);
 
-    scene.init();
+    scene.init(state.state, state.selected);
 
     selectedScene = new SelectedScene(10,10, 900, 50);
 
     menuScene = new SelectMenuMainScene(0, 100,-170,100, 200, 600);
 
+
     scene.loadChildScene(selectedScene);
     scene.loadChildScene(menuScene);
     menuScene.init();
+
+    readAndApplyQueryParams();
 
     console.log("Game started!");
 };
@@ -60,6 +121,7 @@ function getByValue(map, searchValue) {
         if (value && value === searchValue)
             return key;
     }
+    return null;
 }
 
 function getKeyByNestedValue(map, searchValue, prop) {
@@ -68,6 +130,7 @@ function getKeyByNestedValue(map, searchValue, prop) {
             return key;
         }
     }
+    return null;
 }
 
 function getByKey(map, searchValue) {
@@ -76,27 +139,28 @@ function getByKey(map, searchValue) {
             return value;
         }
     }
+    return null;
 }
 
 function onCreateSummoner() {
     let newSummoner = {};
-    newSummoner.id = nextId(summoners);
-    newSummoner.name = "";
-    newSummoner.summons = [];
+    newSummoner.get().id = nextId(summoners);
+    newSummoner.get().name = "";
+    newSummoner.get().summons = [];
 
     summoners.push(newSummoner);
 
     document.getElementById("selectSummoner").value = newSummoner.id;
 
-    currentSummoner = newSummoner;
+    currentSummoner.set(newSummoner);
 
     populateSummonerData(newSummoner.id);
     onSelectSummoner();
 }
 
 function onUpdateSummoner() {
-    currentSummoner.name = document.getElementById("summonerName").value;
-    populateSummonerData(currentSummoner.id);
+    currentSummoner.get().name = document.getElementById("summonerName").value;
+    populateSummonerData(currentSummoner.get().id);
     onSelectSummoner();
 }
 
@@ -105,23 +169,23 @@ function onDeleteSummoner() {
 }
 
 function onSelectSummon() {    
-    currentAction = null;
+    currentAction.set(null);
     document.getElementById("actionSelectDiv").hidden = true;
     document.getElementById("actionDetailDiv").hidden = true;
     scene.load();
 
     let id = document.getElementById("selectSummon").value;
-    currentSummon = currentSummoner.summons.find(item => item.id == id);
+    currentSummon.set(currentSummoner.get().summons.find(item => item.id == id));
 
     document.getElementById("summonDetailDiv").hidden = false;
 
-    document.getElementById("summonName").value = currentSummon.name;
+    document.getElementById("summonName").value = currentSummon.get().name;
 
     document.getElementById("actionSelectDiv").hidden = false;
     selectAction = document.getElementById("selectAction");
     selectAction.innerHTML = "";
 
-    for(let action of currentSummon.actions) {
+    for(let action of currentSummon.get().actions) {
         let option = document.createElement('option');
         option.value = action.id;
         option.text = action.name;
@@ -132,11 +196,11 @@ function onSelectSummon() {
 function onCreateSummon() {
     scene.load();
     let newSummon = {};
-    newSummon.id = nextId(currentSummoner.summons);
+    newSummon.id = nextId(currentSummoner.get().summons);
     newSummon.name = "";
     newSummon.actions = [];
 
-    currentSummoner.summons.push(newSummon);
+    currentSummoner.get().summons.push(newSummon);
 
     document.getElementById("selectSummon").value = newSummon.id;
 
@@ -147,8 +211,8 @@ function onCreateSummon() {
 }
 
 function onUpdateSummon() {
-    currentSummon.name = document.getElementById("summonName").value;
-    populateSummonData(currentSummon.id);
+    currentSummon.get().name = document.getElementById("summonName").value;
+    populateSummonData(currentSummon.get().id);
     onSelectSummon();
 }
 
@@ -206,13 +270,13 @@ function readAndApplyQueryParams() {
     queryParamsMap.forEach(strArr => {
         switch(strArr[0]){
             case "summoner":
-                currentSummoner = summoners.find(summ => summ.id == strArr[1]);
+                currentSummoner.set(summoners.find(summ => summ.id == strArr[1]));
                 return;
             case "summon":
-                currentSummon = currentSummoner.summons.find(summ => summ.id == strArr[1]);
+                currentSummon.set(currentSummoner.get().summons.find(summ => summ.id == strArr[1]));
                 return;
             case "action":
-                currentAction = currentSummon.actions.find(act => act.id == strArr[1]);
+                currentAction.set(currentSummon.get().actions.find(act => act.id == strArr[1]));
                 return;
         }
     });

@@ -9,28 +9,38 @@ class SelectedScene extends Scene {
     draw() {
         super.draw();
 
-        if(currentSummoner) {
+        //todo: change these into GameObject and update state onClick.
+
+        if(currentSummoner.get()) {
             let ctx = this.cv_context;
             ctx.font = "15px Verdana";
             ctx.fillStyle = "black";
             ctx.textAlign = "left";
-            ctx.fillText("Summoner : " + currentSummoner.name, 0, this.height / 2);
+            ctx.fillText("Summoner : " + currentSummoner.get().name, 0, this.height / 2);
         }
 
-        if(currentSummon) {
+        if(currentSummon.get()) {
             let ctx = this.cv_context;
             ctx.font = "15px Verdana";
             ctx.fillStyle = "black";
             ctx.textAlign = "center";
-            ctx.fillText("Summon : " + currentSummon.name, this.width / 2, this.height / 2);
+            ctx.fillText("Summon : " + currentSummon.get().name, this.width / 2, this.height / 2);
         }
 
-        if(currentAction) {
+        if(currentAction.get()) {
             let ctx = this.cv_context;
             ctx.font = "15px Verdana";
             ctx.fillStyle = "black";
             ctx.textAlign = "right";
-            ctx.fillText("Action : " + currentAction.name, this.width, this.height / 2);
+            ctx.fillText("Action : " + currentAction.get().name, this.width, this.height / 2);
         }
+    }
+
+    onUpdateSelected(selected) {
+
+    }
+
+    onUpdateState(st) {
+        
     }
 }
