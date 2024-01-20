@@ -61,8 +61,9 @@ class EditMenuMainScene extends SelectMenuMainScene {
     }
 
     addEditButton() {
-        let editRangeButton = new Button(100,80, this.game.images.button);
-        let editTargetButton = new Button(100, 140, this.game.images.button);
+        let editRangeButton = new Button(100,100, this.game.images.button);
+        let editTargetButton = new Button(100, 150, this.game.images.button);
+        let viewButton = new Button(100, 50, this.game.images.button);
 
         editRangeButton.transform.scale = new vector(0.6,.7);
         editRangeButton.setName("Edit Range");
@@ -72,8 +73,13 @@ class EditMenuMainScene extends SelectMenuMainScene {
         editTargetButton.setName("Edit Targets");
         editTargetButton.textSize = 14;
 
+        viewButton.transform.scale = new vector(0.6,.7);
+        viewButton.setName("View");
+        viewButton.textSize = 14;
+
         this.addObject(editRangeButton);
         this.addObject(editTargetButton);
+        this.addObject(viewButton);
 
         editRangeButton.held = (btn) => {
             buttonGroup.held(btn);
@@ -84,10 +90,29 @@ class EditMenuMainScene extends SelectMenuMainScene {
             currentState.set('EDIT_RANGE');
         }
 
+        editTargetButton.held = (btn) => {
+            buttonGroup.held(btn);
+        }
+
+        editTargetButton.clicked = (btns) => {
+            this.collapse(this.buttonGroups.find(bg=>bg.name=="collapse").buttons[0]);
+            currentState.set('EDIT_TARGET');
+        }
+
+        viewButton.held = (btn) => {
+            buttonGroup.held(btn);
+        }
+
+        viewButton.clicked = (btns) => {
+            this.collapse(this.buttonGroups.find(bg=>bg.name=="collapse").buttons[0]);
+            currentState.set('VIEW');
+        }
+
         let buttonGroup = new ButtonGroup();
 
         buttonGroup.addButton(editRangeButton);
         buttonGroup.addButton(editTargetButton);
+        buttonGroup.addButton(viewButton);
 
         this.buttonGroups.push(buttonGroup);
     }

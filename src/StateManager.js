@@ -2,7 +2,7 @@ class StateManager {
 
     selected = {level: null, object: null}; // {level, object}
     lastSelectedObj = {level: null, object: null};
-    state = "VIEW"; //EDIT_RANGE,EDIT_TARGETS,VIEW
+    state = "VIEW"; //EDIT_RANGE,EDIT_TARGET,VIEW
 
     //for all scenes and childScenes: updateState(selected);
 

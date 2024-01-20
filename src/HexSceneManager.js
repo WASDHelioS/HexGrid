@@ -48,6 +48,10 @@ class HexSceneManager {
             if(!(this.centerHex instanceof HexChar)) {
                 this.replaceCenterHexBy(new HexChar(this.scene.width/2,this.scene.height/2,this.hexagonGreen, ()=> this.reload(state, selected)));
             }
+            if(state != 'VIEW') {
+                this.centerHex.direction = CubeDirection.N;
+                this.centerHex.transform.rotation = 0;
+            }
         } else {
             if((this.centerHex instanceof HexChar)) {
                 this.replaceCenterHexBy(new Hex(this.scene.width/2,this.scene.height/2,this.hexagonWhite));
@@ -61,8 +65,14 @@ class HexSceneManager {
         this.hexMapTargets.clear();
         this.greyOut();
 
-        this.addRangeHexes(selected.object);
-        this.colorRangeHexes();
+        if(state != "EDIT_TARGET") {
+            this.addRangeHexes(selected.object);
+            this.colorRangeHexes();
+        } else {
+            this.replaceCenterHexBy(new Hex(this.scene.width/2,this.scene.height/2,this.hexagonWhite));
+            this.addTargetHexes(selected.object);
+            this.colorTargetHexes();
+        }
         this.initStateHandling(state, selected);
     }
 
@@ -71,8 +81,11 @@ class HexSceneManager {
             this.handleHover = this.viewHoverHandler;
             this.handleClicked = null;
         } else if(state == 'EDIT_RANGE') {
-            this.handleHover = this.editRangeHoverHandler;
+            this.handleHover = this.editHoverHandler;
             this.handleClicked = (mousePos) => this.editRangeClickHandler(mousePos, selected);
+        } else if(state == 'EDIT_TARGET') {
+            this.handleHover = this.editTargetHoverHandler;
+            this.handleClicked = (mousePos) => this.editTargetClickHandler(mousePos, selected);
         }
     }
 
@@ -158,7 +171,7 @@ class HexSceneManager {
         });
     }
 
-    /** Load valid target hexes */
+    /** Load valid range hexes */
     addRangeHexes(obj) {
         if(!obj || !obj.rangePattern) return;
         let rangePattern = obj.rangePattern;
@@ -195,6 +208,48 @@ class HexSceneManager {
         })
     }
 
+    /** Load valid target hexes */
+    addTargetHexes(obj) {
+        if(!obj || !obj.targetPattern) return;
+        let targetPattern = obj.targetPattern;
+        
+        targetPattern.forEach(p => {
+            let dice = p.dice;
+            let cube;
+
+            if(p.source == 'SOURCE') {
+                cube = this.centerHex.cube;
+            } else {
+                let translatedSource = p.source.map(d=> {
+                    return CubeDirection[d];
+                });
+
+                cube = this.centerHex.cube;
+
+                translatedSource.forEach(d => {
+                    cube = cube_neighbor(cube, d);
+                });
+            }
+
+            let hexTarget = getByKey(this.hexMap, cube);
+            this.hexMapTargets.set(cube, {hex: hexTarget, dice: dice, source: p.source});
+        });
+
+        this.hexMapTargets.forEach((h,c) => {
+            h.hex.renderer.sprite = this.hexagonRed;
+        })
+    }
+
+    colorTargetHexes() {
+        this.hexMapTargets.forEach((h,cube) => {
+            
+            if(!(cube instanceof HexChar)) {
+                h.hex.renderer.sprite = this.hexagonRed;
+            }
+
+        })
+    }
+
     /** Hover */
 
     //Maybe have updateHover as a variable func: depending on state 'update on hover' might mean something different
@@ -211,7 +266,6 @@ class HexSceneManager {
             
     }
 
-    //Checks the json action pattern to map out the target hexes at the current hex (hovered)
     updateTargetHexes(hexSource) {
         let targetPattern = currentAction.get().targetPattern;
         let directionFromCenterToTarget = cube_direction(hexSource.cube, this.centerHex.cube);
@@ -280,6 +334,26 @@ class HexSceneManager {
         }
     }
 
+    resetColorForEditTarget(hex) {
+        if(!getKeyByNestedValue(this.hexMapTargets, hex, 'hex')) {
+            if(hex != this.selectedHex) {
+                if(hex == this.centerHex) {
+                    hex.renderer.sprite = this.hexagonWhite;
+                } else {
+                    hex.renderer.sprite = this.hexagonGrey;
+                }
+            } else {
+                hex.renderer.sprite = this.hexagonDarkYellow;
+            }
+        } else {
+            if(hex == this.selectedHex) {
+                hex.renderer.sprite = this.hexagonDarkYellow;
+            } else {
+                hex.renderer.sprite = this.hexagonRed;
+            }
+        }
+    }
+
     drawText(ctx) {
         ctx.font = "14px Arial";
         ctx.fillStyle = "black";
@@ -329,7 +403,6 @@ class HexSceneManager {
                     this.removeHexHovered();
                     this.hoveredHex = h.hex;
 
-
                     if(!cube_matches(getKeyByNestedValue(this.hexMapRanges, this.hoveredHex, 'hex'), this.centerHex.cube)) {
                         this.hoveredHex.renderer.sprite = this.hexagonYellow;
                     }
@@ -345,7 +418,7 @@ class HexSceneManager {
         }
     }
 
-    editRangeHoverHandler(mousePos) {
+    editHoverHandler(mousePos) {
         if(!mousePos) {
             this.removeHexHovered();
             return;
@@ -377,6 +450,50 @@ class HexSceneManager {
         }
     }
 
+    editTargetHoverHandler(mousePos) {
+        if(!mousePos) {
+            this.removeHexHoveredForEditTarget();
+            return;
+        }
+        let found = null;
+
+        for(let [k,h] of this.hexMap) {
+            if(this.isWithin(mousePos, h.transform.position,h.radius)) {
+                if(h instanceof HexChar) {
+                    break;
+                }
+                found = true;
+                if(h !== this.hoveredHex) {
+                    this.removeHexHoveredForEditTarget();
+                    this.hoveredHex = h;
+
+                    if(!(this.hoveredHex instanceof HexChar)) {
+                        if(this.hoveredHex != this.selectedHex) {
+                            this.hoveredHex.renderer.sprite = this.hexagonYellow;
+                        }
+                    }
+                }
+                break;
+            }
+        }
+
+        if(!found) {
+            this.removeHexHoveredForEditTarget();
+        }
+    }
+
+    removeHexHoveredForEditTarget() {
+        if(!this.hoveredHex) {
+            return;
+        }
+        this.resetColorForEditTarget(this.hoveredHex);
+
+        this.hexMapTargets.forEach((h, c) => {
+            h.hex.renderer.sprite = this.hexagonRed;
+        });
+        this.hoveredHex = null;
+    }
+
     editRangeClickHandler(mousePos, selectedObj) {    
         if(!this.hoveredHex) return;
         if(this.contextWindowOpened) return;
@@ -401,7 +518,7 @@ class HexSceneManager {
             hexData.dice = old.dice;
         }
 
-            if(selectedObj.level == 'action') {
+        if(selectedObj.level == 'action') {
 
             let tileScene = new AddTileScene(mousePos.x, mousePos.y, null, null, 200, 300);
             tileScene.callBack = (e) => this.saveRange(e, selectedObj);
@@ -418,8 +535,48 @@ class HexSceneManager {
         }
     }
 
+    editTargetClickHandler(mousePos, selectedObj) {    
+        if(!this.hoveredHex) return;
+        if(this.contextWindowOpened) return;
+
+        let previousHex = this.selectedHex;
+
+        this.selectedHex = this.hoveredHex;
+
+        if(previousHex) {
+            this.resetColorForEditTarget(previousHex);
+        }
+
+        this.selectedHex.renderer.sprite = this.hexagonDarkYellow;
+
+        let hexData = {};
+        hexData.hex = this.selectedHex;
+        hexData.path = PathFinder.find(this.hoveredHex.cube, this.centerHex.cube, this.hexMap);
+
+        let old = getByKey(this.hexMapTargets, this.selectedHex.cube);
+        if(old) {
+            hexData.oldPath = old.source;
+            hexData.dice = old.dice;
+        }
+
+        if(selectedObj.level == 'action') {
+
+            let tileScene = new AddTileScene(mousePos.x, mousePos.y, null, null, 200, 300);
+            tileScene.callBack = (e) => this.saveTarget(e, selectedObj);
+            tileScene.closeCallBack = (hexData) => {
+                this.selectedHex = null;
+                this.contextWindowOpened = false;
+                this.resetColorForEditTarget(hexData.hex);
+            };
+
+            this.scene.loadChildScene(tileScene);
+            tileScene.init(hexData);
+
+            this.contextWindowOpened = true;
+        }
+    }
+
     saveRange(hexData, selectedObj) {
-        console.log(hexData);
         if(!hexData) return;
         if(hexData.mod) {
             if(hexData.mod.enabled == 'off') {
@@ -434,8 +591,35 @@ class HexSceneManager {
                     selectedObj.object.rangePattern.push(pattern);
                 }
                 pattern.source = hexData.path.map(p => p.name);
-                pattern.dice = hexData.mod.dice;
+                pattern.dice = hexData.mod.dice; 
+            }
+        }
+        this.reload(state.state, selectedObj);
+    }
+
+    saveTarget(hexData, selectedObj) {
+        if(!hexData) return;
+        if(hexData.mod) {
+            let key;
+            if(hexData.path) {
+                key = hexData.path.map(p => p.name);
+            } else {
+                key = ['SOURCE'];
+            }
+            if(hexData.mod.enabled == 'off') {
                 
+                let pattern = this.findEntryFromObject(key, selectedObj, 'targetPattern');
+                if(pattern) {
+                    selectedObj.object.targetPattern = selectedObj.object.targetPattern.filter(p => !(this.arrayEquals(p.source,pattern.source)));
+                }
+            } else {
+                let pattern = this.findEntryFromObject(key, selectedObj, 'targetPattern');
+                if(!pattern) {
+                    pattern = {source: [], dice:null};
+                    selectedObj.object.targetPattern.push(pattern);
+                }
+                pattern.source = key;
+                pattern.dice = hexData.mod.dice; 
             }
         }
         this.reload(state.state, selectedObj);
@@ -457,11 +641,6 @@ class HexSceneManager {
             Array.isArray(arr2) &&
             arr1.length === arr2.length &&
             arr1.every((val, index) => val === arr2[index]);
-    }
-
-    removeEntryFromObject(prop) {
-        //prop = rangePattern, targetPattern
-
     }
 
 }
